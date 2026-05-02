@@ -23,30 +23,6 @@ Cockpit module for managing a Samba Active Directory Domain Controller via `samb
 | esbuild | 0.28 |
 | Node.js | ≥ 18 |
 
-## Project structure
-
-```
-src/
-  index.html          # HTML shell (loads cockpit.js + index.js)
-  index.tsx           # React entry point, dark theme sync
-  manifest.json       # Cockpit module metadata
-  app.tsx             # Root component — Page + Tabs
-  app.scss            # Minimal CSS overrides
-  components/
-    UsersPage.tsx
-    GroupsPage.tsx
-    ComputersPage.tsx
-    modals/           # PF6 modals for each CRUD operation
-  lib/
-    types.ts          # TypeScript interfaces (User, Group, Computer, …)
-    parsers.ts        # samba-tool LDAP-style output parsers
-    samba.ts          # API layer — cockpit.spawn with superuser: require
-    cache.ts          # In-memory TTL cache
-test/
-  parsers.test.ts
-  cache.test.ts
-```
-
 ## Requirements
 
 - Git
