@@ -1,0 +1,20 @@
+{
+  "version": 0,
+  "requires": {
+    "cockpit": "337"
+  },
+  "conditions": [
+    { "path-exists": "/usr/bin/samba-tool" }
+  ],
+  "menu": {
+    "index": {
+      "label": "Samba AD DC",
+      "order": 90,
+      "keywords": [
+        {
+          "matches": ["samba", "ad", "active directory", "domain", "users", "groups", "computers", "accounts"]
+        }
+      ]
+    }
+  }
+}

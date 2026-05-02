@@ -1,0 +1,5 @@
+// Without sidebar={null} on Page, PF6 switches at ≥75rem to a 2-column grid
+// (18.125rem sidebar + 1fr main) and places the main-container in the "main"
+// column only, leaving ~290px of empty space on the left. sidebar={null} adds
+// pf-m-no-sidebar which remaps grid-area to span both columns (full width).
+// No additional CSS override is needed for the grid layout.

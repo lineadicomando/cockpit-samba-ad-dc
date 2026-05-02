@@ -1,0 +1,108 @@
+# cockpit-samba-ad-dc
+
+Cockpit module for managing a Samba Active Directory Domain Controller via `samba-tool`.
+
+## Features
+
+- **Users** — list, create, edit password, enable/disable, delete
+- **Groups** — list, create, rename, delete, member management (add/remove)
+- **Computers** — list, delete
+- Automatic protection of built-in system objects (Administrator, krbtgt, Domain Admins, etc.)
+- Live search and filter in every section
+- Full support for Cockpit light/dark theme
+
+## Tech stack
+
+| Component | Version |
+|---|---|
+| Cockpit | 337 |
+| Samba | 4.22 |
+| React | 18.3 |
+| PatternFly | 6.1 |
+| TypeScript | 5.9 |
+| esbuild | 0.28 |
+| Node.js | ≥ 18 |
+
+## Project structure
+
+```
+src/
+  index.html          # HTML shell (loads cockpit.js + index.js)
+  index.tsx           # React entry point, dark theme sync
+  manifest.json       # Cockpit module metadata
+  app.tsx             # Root component — Page + Tabs
+  app.scss            # Minimal CSS overrides
+  components/
+    UsersPage.tsx
+    GroupsPage.tsx
+    ComputersPage.tsx
+    modals/           # PF6 modals for each CRUD operation
+  lib/
+    types.ts          # TypeScript interfaces (User, Group, Computer, …)
+    parsers.ts        # samba-tool LDAP-style output parsers
+    samba.ts          # API layer — cockpit.spawn with superuser: require
+    cache.ts          # In-memory TTL cache
+test/
+  parsers.test.ts
+  cache.test.ts
+```
+
+## Requirements
+
+- Git
+- Make
+- Cockpit ≥ 337 installed on the server
+- `samba-tool` available at `/usr/bin/samba-tool`
+- Node.js ≥ 18 on the development machine
+- npm (bundled with Node.js)
+
+## Installation
+
+```bash
+
+# Clone repository
+git clone https://github.com/lineadicomando/cockpit-samba-ad-dc.git
+cd cockpit-samba-ad-dc
+
+# Install dependencies
+npm install
+
+# Build and install into production Cockpit extensions directory
+sudo make install
+```
+
+This installs the module to:
+`/usr/share/cockpit/samba-ad-dc`
+
+For pre-`1.0.0` releases, deployment is Make-based (`sudo make install` / `make vm-deploy`).
+
+## Development
+
+```bash
+# Install dependencies
+npm install
+
+# Build
+make build
+
+# Install by copying dist/ into production cockpit (/usr/share/cockpit/samba-ad-dc)
+sudo make install
+
+# Install as symlink into local cockpit (development shortcut)
+make devel-install
+
+# Run unit tests
+make check
+
+# Watch mode (auto-rebuild on save)
+make watch
+```
+
+## Privilege escalation
+
+The module uses `cockpit.spawn` with `superuser: "require"` — no hardcoded `sudo` in command arguments. Cockpit handles privilege escalation via PolicyKit.
+
+## License
+
+Same license as the Cockpit project: **GNU LGPL v2.1 or later** (`LGPL-2.1-or-later`).
+See [LICENSE](./LICENSE).
