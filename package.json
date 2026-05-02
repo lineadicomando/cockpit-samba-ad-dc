@@ -9,14 +9,15 @@
     "watch": "node build.js --watch"
   },
   "dependencies": {
+    "@patternfly/patternfly": "^6.1.0",
     "@patternfly/react-core": "^6.1.0",
     "@patternfly/react-icons": "^6.1.0",
     "@patternfly/react-table": "^6.1.0",
-    "@patternfly/patternfly": "^6.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@types/node": "^25.6.0",
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.1",
     "esbuild": "^0.28.0",

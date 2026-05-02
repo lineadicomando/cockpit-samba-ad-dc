@@ -99,7 +99,7 @@ export function GroupMultiSelect({ selected, onChange, isDisabled }: Props) {
                     {selected.map(g => (
                         <Label
                             key={g}
-                            color={ADMIN_GROUPS.has(g.toLowerCase()) ? "gold" : "blue"}
+                            color={ADMIN_GROUPS.has(g.toLowerCase()) ? "orange" : "blue"}
                             onClose={isDisabled ? undefined : () => onChange(selected.filter(x => x !== g))}
                         >
                             {g}

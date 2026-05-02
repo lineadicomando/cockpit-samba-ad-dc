@@ -4,7 +4,8 @@ import {
     PageBreadcrumb, PageSection,
     Title, Spinner, Alert,
     Card, CardTitle, CardBody,
-    Form, FormGroup, TextInput, Checkbox,
+    Form, FormGroup, FormHelperText, HelperText, HelperTextItem,
+    TextInput, Checkbox,
     ActionGroup, Button,
     Divider,
 } from "@patternfly/react-core";
@@ -126,11 +127,17 @@ function IdentitySection({ user, onUpdate }: { user: User; onUpdate: (u: User) =
                 {error && <Alert variant="danger" isInline title={error} style={{ marginBottom: "1rem" }} />}
                 {success && <Alert variant="success" isInline title="Changes saved." style={{ marginBottom: "1rem" }} />}
                 <Form isHorizontal>
-                    <FormGroup label="Username" fieldId="ud-username" isRequired
-                        helperText={user.isProtected ? "System accounts cannot be renamed." : undefined}>
+                    <FormGroup label="Username" fieldId="ud-username" isRequired>
                         <TextInput id="ud-username" value={newUsername}
                             onChange={(_e, v) => { setNewUsername(v); setSuccess(false); }}
                             isDisabled={user.isProtected} />
+                        {user.isProtected && (
+                            <FormHelperText>
+                                <HelperText>
+                                    <HelperTextItem>System accounts cannot be renamed.</HelperTextItem>
+                                </HelperText>
+                            </FormHelperText>
+                        )}
                     </FormGroup>
                     <FormGroup label="Given name" fieldId="ud-given-name">
                         <TextInput id="ud-given-name" value={givenName}

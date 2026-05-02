@@ -182,7 +182,7 @@ export function GroupsPage() {
                                 <Td dataLabel="Type">
                                     {g.detailsLoaded ? (
                                         g.isProtected
-                                            ? <Label color="gold">Protected</Label>
+                                            ? <Label color="orange">Protected</Label>
                                             : <Label color="blue">Custom</Label>
                                     ) : <Skeleton width="70px" />}
                                 </Td>
