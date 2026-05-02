@@ -14,6 +14,7 @@ const PROTECTED_GROUPS = new Set([
     "administrators", "domain admins", "enterprise admins", "schema admins",
     "domain controllers", "users", "guests", "domain users",
     "domain guests", "domain computers",
+    "dnsadmins", "dnsupdateproxy",
 ]);
 
 async function runSamba(args: string[]): Promise<string> {
