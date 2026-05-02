@@ -1,5 +1,10 @@
 # cockpit-samba-ad-dc
 
+[![GitHub tag](https://img.shields.io/github/v/tag/lineadicomando/cockpit-samba-ad-dc?label=version)](https://github.com/lineadicomando/cockpit-samba-ad-dc/tags)
+[![License: LGPL v2.1](https://img.shields.io/badge/license-LGPL%20v2.1-blue)](./LICENSE)
+[![CI](https://github.com/lineadicomando/cockpit-samba-ad-dc/actions/workflows/ci.yml/badge.svg)](https://github.com/lineadicomando/cockpit-samba-ad-dc/actions/workflows/ci.yml)
+[![GitHub issues](https://img.shields.io/github/issues/lineadicomando/cockpit-samba-ad-dc)](https://github.com/lineadicomando/cockpit-samba-ad-dc/issues)
+
 Cockpit module for managing a Samba Active Directory Domain Controller via `samba-tool`.
 
 ## Features
