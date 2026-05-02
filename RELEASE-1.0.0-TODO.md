@@ -183,10 +183,10 @@ All six requirements are feasible for `1.0.0` with this scoped interpretation:
 4. Security rules for who can run destructive import/bulk/share operations.
 
 ## Proposed Milestones to 1.0.0
-- `0.2.0-alpha`: bulk membership operations + config-driven home path/drive.
-- `0.3.0-alpha`: shared folder management baseline.
-- `0.4.0-alpha`: import/export engine + validation reports.
-- `0.5.0-alpha`: auto-mount rules + managed logon script apply.
+- `0.2.0`: bulk membership operations + config-driven home path/drive.
+- `0.3.0`: shared folder management baseline.
+- `0.4.0`: import/export engine + validation reports.
+- `0.5.0`: auto-mount rules + managed logon script apply.
 - `0.9.0-rc`: stabilization, regression testing, docs, packaging checks.
 - `1.0.0`: final QA on VM matrix + release.
 
