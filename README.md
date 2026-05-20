@@ -55,7 +55,7 @@ sudo make install
 This installs the module to:
 `/usr/share/cockpit/samba-ad-dc`
 
-For pre-`1.0.0` releases, deployment is Make-based (`sudo make install` / `make vm-deploy`).
+For pre-`1.0.0` releases, deployment is Make-based (`sudo make install`).
 
 ## Development
 

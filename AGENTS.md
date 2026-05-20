@@ -5,7 +5,6 @@ make build          # compile src/ → dist/ with esbuild
 make watch          # same, with file-watching and inline sourcemaps
 make check          # run unit tests (Node --experimental-strip-types, no compile step)
 make devel-install  # symlink dist/ into ~/.local/share/cockpit/samba-ad-dc
-make vm-deploy      # build and rsync dist/ to the test VM (maint@172.16.0.3)
 ```
 
 Run a single test file:
@@ -51,7 +50,3 @@ samba-tool on the server
 ### Protected objects
 
 `samba.ts` maintains `PROTECTED_USERS` and `PROTECTED_GROUPS` sets. UI components must respect the `isProtected` flag on each object — destructive actions (delete, rename, disable) must be disabled for protected objects.
-
-### Test VM
-
-The VM at `maint@172.16.0.3` runs Debian 13, Cockpit 337, Samba 4.22.8, domain `acme.internal`. `make vm-deploy` tarballs `dist/` and extracts it into the VM's user-local cockpit directory. No package manager or systemd restart needed.
