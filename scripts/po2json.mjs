@@ -22,8 +22,10 @@ for (const [msgid, entry] of Object.entries(catalog)) {
     const [singular, plural] = entry.msgstr;
 
     if (entry.msgid_plural) {
-        // Plural form: expand into i18next _one / _other keys
+        // Plural form: expand into i18next _one / _many / _other keys
+        // Italian CLDR needs _many for numbers ending in 11-19 (e.g. 1.000.011)
         if (singular) result[`${msgid}_one`] = singular;
+        if (plural)   result[`${msgid}_many`] = plural;
         if (plural)   result[`${msgid}_other`] = plural;
     } else {
         if (singular) result[msgid] = singular;

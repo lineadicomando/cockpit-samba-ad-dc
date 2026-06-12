@@ -356,9 +356,6 @@ msgstr "Impossibile caricare l'utente"
 msgid "Username is required."
 msgstr "Il nome utente è obbligatorio."
 
-msgid "Username cannot be empty."
-msgstr "Il nome utente non può essere vuoto."
-
 msgid "Group name is required."
 msgstr "Il nome del gruppo è obbligatorio."
 
@@ -577,7 +574,7 @@ msgstr[1] "I seguenti {{count}} utenti verranno eliminati:"
 msgid "users_will_be_provisioned"
 msgid_plural "users_will_be_provisioned_plural"
 msgstr[0] "Verrà creata la home directory del seguente {{count}} utente:"
-msgstr[1] "Verrà creata la home directory dei seguenti {{count}} utenti:"
+msgstr[1] "Verranno create le home directory dei seguenti {{count}} utenti:"
 
 msgid "users_will_skip"
 msgid_plural "users_will_skip_plural"

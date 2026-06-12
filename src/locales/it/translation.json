@@ -209,8 +209,8 @@
   "users_will_be_enabled_many": "I seguenti {{count}} utenti verranno abilitati:",
   "users_will_be_enabled_other": "I seguenti {{count}} utenti verranno abilitati:",
   "users_will_be_provisioned_one": "Verrà creata la home directory del seguente {{count}} utente:",
-  "users_will_be_provisioned_many": "Verrà creata la home directory dei seguenti {{count}} utenti:",
-  "users_will_be_provisioned_other": "Verrà creata la home directory dei seguenti {{count}} utenti:",
+  "users_will_be_provisioned_many": "Verranno create le home directory dei seguenti {{count}} utenti:",
+  "users_will_be_provisioned_other": "Verranno create le home directory dei seguenti {{count}} utenti:",
   "users_will_skip_one": "{{count}} utente sarà ignorato",
   "users_will_skip_many": "{{count}} utenti saranno ignorati",
   "users_will_skip_other": "{{count}} utenti saranno ignorati"
