@@ -1,0 +1,17 @@
+# Source files containing translatable strings.
+# Used as reference for i18next-parser (configured via i18next-parser.config.mjs).
+src/app.tsx
+src/components/UsersPage.tsx
+src/components/GroupsPage.tsx
+src/components/ComputersPage.tsx
+src/components/UserDetailPage.tsx
+src/components/GroupMultiSelect.tsx
+src/components/modals/CreateUserModal.tsx
+src/components/modals/DeleteUserModal.tsx
+src/components/modals/CreateGroupModal.tsx
+src/components/modals/DeleteGroupModal.tsx
+src/components/modals/RenameGroupModal.tsx
+src/components/modals/DeleteComputerModal.tsx
+src/components/modals/BulkConfirmModal.tsx
+src/components/modals/BulkGroupModal.tsx
+src/components/modals/ManageMembersModal.tsx

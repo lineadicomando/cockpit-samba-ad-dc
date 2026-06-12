@@ -1,0 +1,124 @@
+import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import {
+    TextInputGroup, TextInputGroupMain, TextInputGroupUtilities,
+    Button,
+    FormHelperText, HelperText, HelperTextItem,
+} from "@patternfly/react-core";
+import { EyeIcon, EyeSlashIcon, KeyIcon, CheckCircleIcon } from "@patternfly/react-icons";
+import type { PasswordPolicy } from "../lib/types.ts";
+import type { CopyState } from "../lib/hooks.ts";
+
+interface PasswordFieldProps {
+    id: string;
+    value: string;
+    onChange: (v: string) => void;
+    isDisabled?: boolean;
+    isRequired?: boolean;
+    forceReveal?: number;
+    onGenerate?: () => void;
+    copyState?: CopyState;
+}
+
+export function PasswordField({ id, value, onChange, isDisabled, isRequired, forceReveal, onGenerate, copyState }: PasswordFieldProps) {
+    const { t } = useTranslation();
+    const [visible, setVisible] = useState(false);
+
+    useEffect(() => {
+        if (forceReveal) setVisible(true);
+    }, [forceReveal]);
+
+    function handleGenerate() {
+        onGenerate?.();
+        setVisible(true);
+    }
+
+    return (
+        <>
+            <TextInputGroup isDisabled={isDisabled}>
+                <TextInputGroupMain
+                    id={id}
+                    type={visible ? "text" : "password"}
+                    value={value}
+                    onChange={(_e, v) => onChange(v)}
+                    required={isRequired}
+                />
+                <TextInputGroupUtilities>
+                    {onGenerate && (
+                        <Button
+                            variant="plain"
+                            aria-label={t("Generate password")}
+                            onClick={handleGenerate}
+                            isDisabled={isDisabled}
+                            tabIndex={-1}
+                        >
+                            {copyState === "copied"
+                                ? <CheckCircleIcon style={{ color: "var(--pf-v6-global--success-color--100, green)" }} />
+                                : <KeyIcon />}
+                        </Button>
+                    )}
+                    <Button
+                        variant="plain"
+                        aria-label={visible ? t("Hide password") : t("Show password")}
+                        onClick={() => setVisible(v => !v)}
+                        isDisabled={isDisabled}
+                        tabIndex={-1}
+                    >
+                        {visible ? <EyeSlashIcon /> : <EyeIcon />}
+                    </Button>
+                </TextInputGroupUtilities>
+            </TextInputGroup>
+            {copyState === "failed" && (
+                <FormHelperText>
+                    <HelperText>
+                        <HelperTextItem variant="warning">
+                            {t("Automatic clipboard copy failed. Copy the password manually.")}
+                        </HelperTextItem>
+                    </HelperText>
+                </FormHelperText>
+            )}
+        </>
+    );
+}
+
+export function PasswordPolicyUnavailable() {
+    const { t } = useTranslation();
+
+    return (
+        <FormHelperText>
+            <HelperText>
+                <HelperTextItem variant="warning">
+                    {t("Failed to load password policy.")}
+                </HelperTextItem>
+            </HelperText>
+        </FormHelperText>
+    );
+}
+
+interface PasswordPolicyInfoProps {
+    policy: PasswordPolicy;
+}
+
+export function PasswordPolicyInfo({ policy }: PasswordPolicyInfoProps) {
+    const { t } = useTranslation();
+
+    return (
+        <FormHelperText>
+            <HelperText>
+                <HelperTextItem>
+                    {t("Minimum length: {{n}} characters", { n: policy.minLength })}
+                </HelperTextItem>
+                {policy.complexityRequired && (
+                    <HelperTextItem>
+                        {t("Complexity required: uppercase, lowercase, digit, symbol")}
+                    </HelperTextItem>
+                )}
+                {policy.historyLength > 0 && (
+                    <HelperTextItem>
+                        {t("Last {{n}} passwords cannot be reused", { n: policy.historyLength })}
+                    </HelperTextItem>
+                )}
+            </HelperText>
+        </FormHelperText>
+    );
+}

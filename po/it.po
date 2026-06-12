@@ -1,0 +1,590 @@
+# Italian translations for cockpit-samba-ad-dc.
+# Copyright (C) 2026 Alessandro Gagliano
+# This file is distributed under the same license as the cockpit-samba-ad-dc package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: cockpit-samba-ad-dc 0.1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-04 00:00+0000\n"
+"PO-Revision-Date: 2026-06-04 00:00+0200\n"
+"Last-Translator: Alessandro Gagliano <alessandro.gagliano@gmail.com>\n"
+"Language-Team: Italian <it@li.org>\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+# ---------------------------------------------------------------------------
+# Navigazione e struttura
+# ---------------------------------------------------------------------------
+
+msgid "Users"
+msgstr "Utenti"
+
+msgid "Groups"
+msgstr "Gruppi"
+
+msgid "Computers"
+msgstr "Computer"
+
+msgid "Users table"
+msgstr "Tabella utenti"
+
+msgid "Groups table"
+msgstr "Tabella gruppi"
+
+msgid "Computers table"
+msgstr "Tabella computer"
+
+msgid "Row actions"
+msgstr "Azioni riga"
+
+# ---------------------------------------------------------------------------
+# Azioni comuni
+# ---------------------------------------------------------------------------
+
+msgid "Create"
+msgstr "Crea"
+
+msgid "Cancel"
+msgstr "Annulla"
+
+msgid "Delete"
+msgstr "Elimina"
+
+msgid "Rename"
+msgstr "Rinomina"
+
+msgid "Refresh"
+msgstr "Aggiorna"
+
+msgid "Close"
+msgstr "Chiudi"
+
+msgid "Save changes"
+msgstr "Salva modifiche"
+
+msgid "Add"
+msgstr "Aggiungi"
+
+msgid "Remove"
+msgstr "Rimuovi"
+
+msgid "Apply"
+msgstr "Applica"
+
+msgid "Enable"
+msgstr "Abilita"
+
+msgid "Disable"
+msgstr "Disabilita"
+
+msgid "Provision"
+msgstr "Crea"
+
+msgid "Properties"
+msgstr "Proprietà"
+
+# ---------------------------------------------------------------------------
+# Filtri e barra strumenti
+# ---------------------------------------------------------------------------
+
+msgid "Filter by username or name"
+msgstr "Filtra per nome utente o nome"
+
+msgid "Filter by name or description"
+msgstr "Filtra per nome o descrizione"
+
+msgid "Filter by name, OS or ID"
+msgstr "Filtra per nome, SO o ID"
+
+msgid "Filter users"
+msgstr "Filtra utenti"
+
+msgid "Filter groups"
+msgstr "Filtra gruppi"
+
+msgid "Filter groups…"
+msgstr "Filtra gruppi…"
+
+msgid "Filter computers"
+msgstr "Filtra computer"
+
+msgid "All statuses"
+msgstr "Tutti gli stati"
+
+msgid "All groups"
+msgstr "Tutti i gruppi"
+
+msgid "Active"
+msgstr "Attivo"
+
+msgid "Disabled"
+msgstr "Disabilitato"
+
+msgid "Unknown"
+msgstr "Sconosciuto"
+
+msgid "Clear selection"
+msgstr "Deseleziona tutto"
+
+msgid "more"
+msgstr "altri"
+
+# ---------------------------------------------------------------------------
+# Azioni utenti
+# ---------------------------------------------------------------------------
+
+msgid "Create user"
+msgstr "Crea utente"
+
+msgid "Enable users"
+msgstr "Abilita utenti"
+
+msgid "Disable users"
+msgstr "Disabilita utenti"
+
+msgid "Delete users"
+msgstr "Elimina utenti"
+
+msgid "Add to group"
+msgstr "Aggiungi al gruppo"
+
+msgid "Remove from group"
+msgstr "Rimuovi dal gruppo"
+
+msgid "Change primary group"
+msgstr "Cambia gruppo primario"
+
+msgid "Provision home dir"
+msgstr "Crea home dir"
+
+msgid "Provision home directory"
+msgstr "Crea home directory"
+
+msgid "Delete user: {{name}}"
+msgstr "Elimina utente: {{name}}"
+
+# ---------------------------------------------------------------------------
+# Azioni gruppi
+# ---------------------------------------------------------------------------
+
+msgid "Create group"
+msgstr "Crea gruppo"
+
+msgid "Manage members"
+msgstr "Gestisci membri"
+
+msgid "Rename group"
+msgstr "Rinomina gruppo"
+
+msgid "Delete group"
+msgstr "Elimina gruppo"
+
+msgid "Delete group: {{name}}"
+msgstr "Elimina gruppo: {{name}}"
+
+msgid "Rename group: {{name}}"
+msgstr "Rinomina gruppo: {{name}}"
+
+msgid "Add users to group"
+msgstr "Aggiungi utenti al gruppo"
+
+msgid "Remove users from group"
+msgstr "Rimuovi utenti dal gruppo"
+
+msgid "Members of {{name}}"
+msgstr "Membri di {{name}}"
+
+# ---------------------------------------------------------------------------
+# Azioni computer
+# ---------------------------------------------------------------------------
+
+msgid "Delete computer"
+msgstr "Elimina computer"
+
+msgid "Delete computer: {{name}}"
+msgstr "Elimina computer: {{name}}"
+
+# ---------------------------------------------------------------------------
+# Intestazioni colonne
+# ---------------------------------------------------------------------------
+
+msgid "Username"
+msgstr "Nome utente"
+
+msgid "Full name"
+msgstr "Nome completo"
+
+msgid "ID"
+msgstr "ID"
+
+msgid "Status"
+msgstr "Stato"
+
+msgid "Last activity"
+msgstr "Ultima attività"
+
+msgid "Last logon"
+msgstr "Ultimo accesso"
+
+msgid "Name"
+msgstr "Nome"
+
+msgid "Members"
+msgstr "Membri"
+
+msgid "Type"
+msgstr "Tipo"
+
+msgid "OS"
+msgstr "SO"
+
+msgid "Protected"
+msgstr "Protetto"
+
+msgid "Custom"
+msgstr "Personalizzato"
+
+# ---------------------------------------------------------------------------
+# Sezioni dettaglio utente
+# ---------------------------------------------------------------------------
+
+msgid "Identity"
+msgstr "Identità"
+
+msgid "Given name"
+msgstr "Nome"
+
+msgid "Surname"
+msgstr "Cognome"
+
+msgid "Email"
+msgstr "Email"
+
+msgid "Authentication"
+msgstr "Autenticazione"
+
+msgid "Password"
+msgstr "Password"
+
+msgid "New password"
+msgstr "Nuova password"
+
+msgid "Confirm password"
+msgstr "Conferma password"
+
+msgid "Require password change at next login"
+msgstr "Richiedi cambio password al prossimo accesso"
+
+msgid "Set password"
+msgstr "Imposta password"
+
+msgid "Home Directory"
+msgstr "Home directory"
+
+msgid "Drive"
+msgstr "Unità"
+
+msgid "Path"
+msgstr "Percorso"
+
+msgid "Member of"
+msgstr "Membro di"
+
+msgid "Primary group"
+msgstr "Gruppo primario"
+
+msgid "Only groups the user is a member of can be set as primary."
+msgstr "Solo i gruppi di cui l'utente è membro possono essere impostati come primari."
+
+msgid "Group name"
+msgstr "Nome gruppo"
+
+msgid "New name"
+msgstr "Nuovo nome"
+
+msgid "New primary group"
+msgstr "Nuovo gruppo primario"
+
+msgid "Group to add"
+msgstr "Gruppo da aggiungere"
+
+msgid "Group to remove"
+msgstr "Gruppo da rimuovere"
+
+# ---------------------------------------------------------------------------
+# Messaggi di successo
+# ---------------------------------------------------------------------------
+
+msgid "Changes saved."
+msgstr "Modifiche salvate."
+
+msgid "Group membership updated."
+msgstr "Appartenenza al gruppo aggiornata."
+
+msgid "Home directory provisioned."
+msgstr "Home directory creata."
+
+msgid "Password updated."
+msgstr "Password aggiornata."
+
+# ---------------------------------------------------------------------------
+# Messaggi di errore
+# ---------------------------------------------------------------------------
+
+msgid "Action failed"
+msgstr "Azione non riuscita"
+
+msgid "Operation failed"
+msgstr "Operazione non riuscita"
+
+msgid "Failed to load users"
+msgstr "Impossibile caricare gli utenti"
+
+msgid "Failed to load groups"
+msgstr "Impossibile caricare i gruppi"
+
+msgid "Failed to load computers"
+msgstr "Impossibile caricare i computer"
+
+msgid "Failed to load user"
+msgstr "Impossibile caricare l'utente"
+
+msgid "Username is required."
+msgstr "Il nome utente è obbligatorio."
+
+msgid "Username cannot be empty."
+msgstr "Il nome utente non può essere vuoto."
+
+msgid "Group name is required."
+msgstr "Il nome del gruppo è obbligatorio."
+
+msgid "Password is required."
+msgstr "La password è obbligatoria."
+
+msgid "New password is required."
+msgstr "La nuova password è obbligatoria."
+
+msgid "Passwords do not match."
+msgstr "Le password non corrispondono."
+
+msgid "Password must be at least {{min}} characters."
+msgstr "La password deve contenere almeno {{min}} caratteri."
+
+msgid "The new name is the same as the current name."
+msgstr "Il nuovo nome è uguale al nome attuale."
+
+msgid "System accounts cannot be renamed."
+msgstr "Gli account di sistema non possono essere rinominati."
+
+msgid "This action cannot be undone."
+msgstr "Questa azione non può essere annullata."
+
+# ---------------------------------------------------------------------------
+# Chiavi simboliche con interpolazione
+# ---------------------------------------------------------------------------
+
+msgid "type_name_to_confirm"
+msgstr "Digita \"{{name}}\" per confermare"
+
+msgid "type_name_to_confirm_exact"
+msgstr "Digita esattamente \"{{name}}\" per confermare."
+
+msgid "cannot_remove_primary_group"
+msgstr "Impossibile rimuovere il gruppo primario \"{{name}}\" dall'appartenenza. Prima cambia il gruppo primario."
+
+# ---------------------------------------------------------------------------
+# Stati vuoti
+# ---------------------------------------------------------------------------
+
+msgid "No users found"
+msgstr "Nessun utente trovato"
+
+msgid "No users match the filter"
+msgstr "Nessun utente corrisponde al filtro"
+
+msgid "No domain users are available."
+msgstr "Nessun utente di dominio disponibile."
+
+msgid "Try clearing the search, status or group filter."
+msgstr "Prova a rimuovere il filtro di ricerca, stato o gruppo."
+
+msgid "No groups found"
+msgstr "Nessun gruppo trovato"
+
+msgid "No groups match the filter"
+msgstr "Nessun gruppo corrisponde al filtro"
+
+msgid "No domain groups are available."
+msgstr "Nessun gruppo di dominio disponibile."
+
+msgid "Try clearing the search filter."
+msgstr "Prova a rimuovere il filtro di ricerca."
+
+msgid "No computers found"
+msgstr "Nessun computer trovato"
+
+msgid "No computers match the filter"
+msgstr "Nessun computer corrisponde al filtro"
+
+msgid "No domain computers are available."
+msgstr "Nessun computer di dominio disponibile."
+
+msgid "No members."
+msgstr "Nessun membro."
+
+msgid "No groups in common"
+msgstr "Nessun gruppo in comune"
+
+msgid "The selected users share no common group memberships. Select users with at least one group in common."
+msgstr "Gli utenti selezionati non hanno gruppi in comune. Seleziona utenti con almeno un gruppo in comune."
+
+msgid "No users to process"
+msgstr "Nessun utente da elaborare"
+
+msgid "All selected users are already in the target state or are protected."
+msgstr "Tutti gli utenti selezionati sono già nello stato di destinazione o sono protetti."
+
+msgid "— already in target state or protected."
+msgstr "— già nello stato di destinazione o protetti."
+
+# ---------------------------------------------------------------------------
+# Caricamento
+# ---------------------------------------------------------------------------
+
+msgid "Loading users"
+msgstr "Caricamento utenti"
+
+msgid "Loading groups"
+msgstr "Caricamento gruppi"
+
+msgid "Loading groups..."
+msgstr "Caricamento gruppi..."
+
+msgid "Loading user"
+msgstr "Caricamento utente"
+
+msgid "Loading computers"
+msgstr "Caricamento computer"
+
+# ---------------------------------------------------------------------------
+# Selezione e azioni di gruppo (dropdown)
+# ---------------------------------------------------------------------------
+
+msgid "Select groups"
+msgstr "Seleziona gruppi"
+
+msgid "Select a group…"
+msgstr "Seleziona un gruppo…"
+
+msgid "Optional"
+msgstr "Facoltativo"
+
+msgid "Add members (comma-separated)"
+msgstr "Aggiungi membri (separati da virgola)"
+
+msgid "Remove members (comma-separated)"
+msgstr "Rimuovi membri (separati da virgola)"
+
+msgid "Current members"
+msgstr "Membri attuali"
+
+# ---------------------------------------------------------------------------
+# Stringhe plurali — contatori toolbar
+# ---------------------------------------------------------------------------
+
+msgid "users_count"
+msgid_plural "users_count_plural"
+msgstr[0] "{{count}} utente"
+msgstr[1] "{{count}} utenti"
+
+msgid "active_count"
+msgid_plural "active_count_plural"
+msgstr[0] "{{count}} attivo"
+msgstr[1] "{{count}} attivi"
+
+msgid "groups_count"
+msgid_plural "groups_count_plural"
+msgstr[0] "{{count}} gruppo"
+msgstr[1] "{{count}} gruppi"
+
+msgid "computers_count"
+msgid_plural "computers_count_plural"
+msgstr[0] "{{count}} computer"
+msgstr[1] "{{count}} computer"
+
+msgid "users_selected"
+msgid_plural "users_selected_plural"
+msgstr[0] "{{count}} selezionato"
+msgstr[1] "{{count}} selezionati"
+
+msgid "groups_selected"
+msgid_plural "groups_selected_plural"
+msgstr[0] "{{count}} gruppo selezionato"
+msgstr[1] "{{count}} gruppi selezionati"
+
+# ---------------------------------------------------------------------------
+# Stringhe plurali — azioni bulk (risultati)
+# ---------------------------------------------------------------------------
+
+msgid "users_enabled"
+msgid_plural "users_enabled_plural"
+msgstr[0] "{{count}} utente abilitato."
+msgstr[1] "{{count}} utenti abilitati."
+
+msgid "users_disabled"
+msgid_plural "users_disabled_plural"
+msgstr[0] "{{count}} utente disabilitato."
+msgstr[1] "{{count}} utenti disabilitati."
+
+msgid "users_deleted"
+msgid_plural "users_deleted_plural"
+msgstr[0] "{{count}} utente eliminato."
+msgstr[1] "{{count}} utenti eliminati."
+
+msgid "users_provisioned"
+msgid_plural "users_provisioned_plural"
+msgstr[0] "Home directory di {{count}} utente creata."
+msgstr[1] "Home directory di {{count}} utenti create."
+
+msgid "users_updated"
+msgid_plural "users_updated_plural"
+msgstr[0] "{{count}} utente aggiornato."
+msgstr[1] "{{count}} utenti aggiornati."
+
+# ---------------------------------------------------------------------------
+# Stringhe plurali — azioni bulk (conferma)
+# ---------------------------------------------------------------------------
+
+msgid "users_will_be_enabled"
+msgid_plural "users_will_be_enabled_plural"
+msgstr[0] "Il seguente {{count}} utente verrà abilitato:"
+msgstr[1] "I seguenti {{count}} utenti verranno abilitati:"
+
+msgid "users_will_be_disabled"
+msgid_plural "users_will_be_disabled_plural"
+msgstr[0] "Il seguente {{count}} utente verrà disabilitato:"
+msgstr[1] "I seguenti {{count}} utenti verranno disabilitati:"
+
+msgid "users_will_be_deleted"
+msgid_plural "users_will_be_deleted_plural"
+msgstr[0] "Il seguente {{count}} utente verrà eliminato:"
+msgstr[1] "I seguenti {{count}} utenti verranno eliminati:"
+
+msgid "users_will_be_provisioned"
+msgid_plural "users_will_be_provisioned_plural"
+msgstr[0] "Verrà creata la home directory del seguente {{count}} utente:"
+msgstr[1] "Verrà creata la home directory dei seguenti {{count}} utenti:"
+
+msgid "users_will_skip"
+msgid_plural "users_will_skip_plural"
+msgstr[0] "{{count}} utente sarà ignorato"
+msgstr[1] "{{count}} utenti saranno ignorati"
+
+msgid "users_applies_to"
+msgid_plural "users_applies_to_plural"
+msgstr[0] "Si applica a {{count}} utente:"
+msgstr[1] "Si applica a {{count}} utenti:"
