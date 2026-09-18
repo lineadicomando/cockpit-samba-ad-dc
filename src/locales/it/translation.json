@@ -62,6 +62,8 @@
   "Disable users": "Disabilita utenti",
   "Disabled": "Disabilitato",
   "Drive": "Unità",
+  "Drive label": "Nome dell'unità",
+  "Drive letter": "Lettera di unità",
   "Edit": "Modifica",
   "Edit shared folder: {{name}}": "Modifica cartella condivisa: {{name}}",
   "Email": "Email",
@@ -126,6 +128,7 @@
   "Loading user": "Caricamento utente",
   "Loading users": "Caricamento utenti",
   "Manage members": "Gestisci membri",
+  "Map as a network drive at logon": "Connetti come unità di rete all'accesso",
   "Member of": "Membro di",
   "Members": "Membri",
   "Members of {{name}}": "Membri di {{name}}",
@@ -139,6 +142,8 @@
   "Name cannot start with a dash.": "Il nome non può iniziare con un trattino.",
   "Name contains invalid characters: \" / \\ [ ] : ; | = , + * ? < > %": "Il nome contiene caratteri non validi: \" / \\ [ ] : ; | = , + * ? < > %",
   "Name is required.": "Il nome è obbligatorio.",
+  "Name shown in File Explorer. Defaults to the folder name.": "Nome mostrato in Esplora file. Se vuoto, si usa il nome della cartella.",
+  "Network drive": "Unità di rete",
   "Never": "Mai",
   "New name": "Nuovo nome",
   "New password": "Nuova password",
@@ -149,6 +154,7 @@
   "No domain computers are available.": "Nessun computer di dominio disponibile.",
   "No domain groups are available.": "Nessun gruppo di dominio disponibile.",
   "No domain users are available.": "Nessun utente di dominio disponibile.",
+  "No drive letters are available.": "Non ci sono lettere di unità disponibili.",
   "No groups found": "Nessun gruppo trovato",
   "No groups in common": "Nessun gruppo in comune",
   "No groups match the filter": "Nessun gruppo corrisponde al filtro",
@@ -272,5 +278,6 @@
   "users_will_skip_many": "{{count}} utenti saranno ignorati",
   "users_will_skip_other": "{{count}} utenti saranno ignorati",
   "Visible when browsing the server": "Visibile nell'elenco delle risorse del server",
-  "When unchecked, the folder can still be opened by typing its path.": "Se disattivato, la cartella resta raggiungibile digitandone il percorso."
+  "When unchecked, the folder can still be opened by typing its path.": "Se disattivato, la cartella resta raggiungibile digitandone il percorso.",
+  "Windows computers in the domain connect the folder automatically for the users and groups above.": "I computer Windows del dominio collegano automaticamente la cartella per gli utenti e i gruppi indicati sopra."
 }

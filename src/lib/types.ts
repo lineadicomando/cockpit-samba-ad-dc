@@ -53,10 +53,17 @@ export interface ShareAccess {
     level: ShareAccessLevel;
 }
 
+// Network drive mapped at logon for the users and groups with access
+export interface DriveMapping {
+    letter: string;
+    label: string;
+}
+
 export interface SharedFolder {
     name: string;
     path: string;
     comment: string;
     browseable: boolean;
     access: ShareAccess[];
+    automount: DriveMapping | null;
 }

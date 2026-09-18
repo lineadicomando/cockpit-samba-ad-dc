@@ -1,5 +1,5 @@
 import cockpit from "cockpit";
-import { cache, cacheKey, checkName, runAsRoot, getDCNetbiosName, HOMES_DIR } from "./exec.ts";
+import { cache, cacheKey, checkName, runAsRoot, runAsRootWithInput, getDCNetbiosName, HOMES_DIR, SAM_LDB } from "./exec.ts";
 import type { User, Group, Computer, PasswordPolicy, LdapFields } from "./types.ts";
 import {
     parseList, parseLdapShow, parseLdapMulti, firstValue, listValue,
@@ -7,7 +7,6 @@ import {
     parseDomainPasswordSettings, parseGroupType,
 } from "./parsers.ts";
 
-const LDB_PATH = "/var/lib/samba/private/sam.ldb";
 const LDB_KEY_USERS = "ldb:users";
 const LDB_KEY_GROUPS = "ldb:groups";
 const LDB_KEY_COMPUTERS = "ldb:computers";
@@ -63,8 +62,8 @@ async function runLdbCached(key: string, args: string[], ttlMs: number): Promise
 // Read from the local sam.ldb rootDSE rather than "samba-tool domain info
 // 127.0.0.1", which is a CLDAP network query and fails when Samba does not
 // listen on loopback (e.g. "bind interfaces only").
-async function getBaseDN(): Promise<string> {
-    const raw = await runLdbCached("ldb:rootdse", ["-H", LDB_PATH, "-s", "base", "-b", "", "defaultNamingContext"], 3_600_000);
+export async function getBaseDN(): Promise<string> {
+    const raw = await runLdbCached("ldb:rootdse", ["-H", SAM_LDB, "-s", "base", "-b", "", "defaultNamingContext"], 3_600_000);
     const dn = parseLdapMulti(raw).map(f => firstValue(f, "defaultNamingContext")).find(Boolean);
     if (!dn) throw new Error("Cannot determine the domain naming context from sam.ldb");
     return dn;
@@ -72,7 +71,7 @@ async function getBaseDN(): Promise<string> {
 
 function loadGroupsRaw(baseDN: string): Promise<string> {
     return runLdbCached(LDB_KEY_GROUPS, [
-        "-H", LDB_PATH, "-b", baseDN,
+        "-H", SAM_LDB, "-b", baseDN,
         "(objectClass=group)",
         "sAMAccountName", "cn", "description", "member",
         "objectSid", "isCriticalSystemObject", "groupType",
@@ -154,7 +153,7 @@ export async function listUsers(): Promise<User[]> {
     const baseDN = await getBaseDN();
     const [usersRaw, groupsRaw] = await Promise.all([
         runLdbCached(LDB_KEY_USERS, [
-            "-H", LDB_PATH, "-b", baseDN,
+            "-H", SAM_LDB, "-b", baseDN,
             "(&(objectClass=user)(!(objectClass=computer)))",
             "sAMAccountName", "cn", "givenName", "sn", "mail", "uidNumber",
             "userAccountControl", "lastLogon", "lastLogonTimestamp",
@@ -174,7 +173,7 @@ export async function listGroups(): Promise<Group[]> {
     const [groupsRaw, primaryRaw] = await Promise.all([
         loadGroupsRaw(baseDN),
         runLdbCached(LDB_KEY_PRIMARY_COUNTS, [
-            "-H", LDB_PATH, "-b", baseDN,
+            "-H", SAM_LDB, "-b", baseDN,
             "(&(objectClass=user)(!(objectClass=computer)))",
             "primaryGroupID",
         ], 30_000),
@@ -192,7 +191,7 @@ export async function listGroups(): Promise<Group[]> {
 export async function listComputers(): Promise<Computer[]> {
     const baseDN = await getBaseDN();
     const raw = await runLdbCached(LDB_KEY_COMPUTERS, [
-        "-H", LDB_PATH, "-b", baseDN,
+        "-H", SAM_LDB, "-b", baseDN,
         "(objectClass=computer)",
         "sAMAccountName", "cn", "operatingSystem", "operatingSystemVersion",
         "objectSid", "dNSHostName", "lastLogon", "lastLogonTimestamp",
@@ -309,7 +308,7 @@ export async function getGroupDetails(name: string): Promise<Group> {
     const detail = await runSambaCached(["group", "show", name], 60_000);
     const g = buildGroup(parseLdapShow(detail), undefined, name);
     // Count users whose primary group is this group (not reflected in the member attribute)
-    const primaryRaw = await runLdb(["-H", LDB_PATH, "-b", baseDN,
+    const primaryRaw = await runLdb(["-H", SAM_LDB, "-b", baseDN,
         `(&(objectClass=user)(!(objectClass=computer))(primaryGroupID=${g.id}))`,
         "dn",
     ]);
@@ -417,10 +416,7 @@ async function setHomeDirAttributes(dn: string, homeDrive: string, homeDirectory
         `-`,
         ``,
     ].join("\n");
-    await cockpit.spawn(
-        ["ldbmodify", "-H", "/var/lib/samba/private/sam.ldb"],
-        { superuser: "require", err: "message" },
-    ).input(ldif);
+    await runAsRootWithInput(["ldbmodify", "-H", SAM_LDB], ldif);
 }
 
 // Shared across concurrent callers: bulk provisioning runs provisionHomeDir in

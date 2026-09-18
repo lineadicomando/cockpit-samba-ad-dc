@@ -1,7 +1,8 @@
 import { cache, checkName, runAsRoot, getWorkgroup, SHARES_DIR } from "./exec.ts";
 import { parseNetConf, parseSmbUserList, parseSmbBool } from "./parsers.ts";
 import { validateShareName } from "./validators.ts";
-import type { SharedFolder, ShareAccess } from "./types.ts";
+import { listDriveMappings, setDriveMapping } from "./drivemaps.ts";
+import type { SharedFolder, ShareAccess, DriveMapping } from "./types.ts";
 
 const NET_CONF_KEY = "net:conf";
 
@@ -9,6 +10,7 @@ export interface ShareData {
     comment: string;
     browseable: boolean;
     access: ShareAccess[];
+    automount: DriveMapping | null;
 }
 
 // Registry shares live in "net conf"; only those under SHARES_DIR are
@@ -31,7 +33,7 @@ function principalKey(p: { name: string; kind: string }): string {
     return `${p.kind}:${p.name.toLowerCase()}`;
 }
 
-function buildShare(name: string, params: Record<string, string>): SharedFolder {
+function buildShare(name: string, params: Record<string, string>, automount: DriveMapping | null): SharedFolder {
     const readOnly = params["read only"] !== undefined
         ? parseSmbBool(params["read only"], true)
         : !parseSmbBool(params["writeable"] ?? params["writable"] ?? params["write ok"], false);
@@ -48,14 +50,15 @@ function buildShare(name: string, params: Record<string, string>): SharedFolder 
         comment: params["comment"] ?? "",
         browseable: parseSmbBool(params["browseable"] ?? params["browsable"], true),
         access,
+        automount,
     };
 }
 
 export async function listShares(): Promise<SharedFolder[]> {
-    const conf = await loadNetConf();
+    const [conf, drives] = await Promise.all([loadNetConf(), listDriveMappings()]);
     return [...conf.entries()]
         .filter(([, params]) => isManagedPath(params["path"] ?? ""))
-        .map(([name, params]) => buildShare(name, params));
+        .map(([name, params]) => buildShare(name, params, drives.get(name.toLowerCase()) ?? null));
 }
 
 async function findShare(name: string): Promise<SharedFolder> {
@@ -129,6 +132,18 @@ function checkShareData(data: ShareData): void {
     checkName(...data.access.map(a => a.name));
 }
 
+// Checked before touching anything, so a clash does not leave a share
+// created without its mapping (setDriveMapping re-checks under its lock).
+async function checkDriveLetterFree(name: string, automount: DriveMapping | null): Promise<void> {
+    if (!automount) return;
+    const letter = automount.letter.toUpperCase();
+    for (const [share, mapping] of await listDriveMappings()) {
+        if (share !== name.toLowerCase() && mapping.letter === letter) {
+            throw new Error(`Drive letter ${letter}: is already used by "${share}"`);
+        }
+    }
+}
+
 export async function createShare(name: string, data: ShareData): Promise<void> {
     const violation = validateShareName(name);
     if (violation) throw new Error(`Invalid share name "${name}": ${violation}`);
@@ -138,6 +153,7 @@ export async function createShare(name: string, data: ShareData): Promise<void> 
     if ([...conf.keys()].some(s => s.toLowerCase() === name.toLowerCase())) {
         throw new Error(`A share named "${name}" already exists`);
     }
+    await checkDriveLetterFree(name, data.automount);
 
     const path = `${SHARES_DIR}/${name}`;
     try {
@@ -149,6 +165,7 @@ export async function createShare(name: string, data: ShareData): Promise<void> 
         await runAsRoot(["net", "conf", "addshare", name, path, "writeable=y", "guest_ok=n"]);
         await runAsRoot(["net", "conf", "setparm", name, "inherit acls", "yes"]);
         await applyShareParams(name, data);
+        if (data.automount) await setDriveMapping(name, data.access, data.automount);
     } finally {
         cache.invalidate(k => k === NET_CONF_KEY);
     }
@@ -158,9 +175,12 @@ export async function updateShare(name: string, data: ShareData): Promise<void> 
     checkShareData(data);
     cache.invalidate(k => k === NET_CONF_KEY);
     const share = await findShare(name);
+    await checkDriveLetterFree(share.name, data.automount);
     try {
         await applyAcl(share.path, share.access, data.access);
         await applyShareParams(share.name, data);
+        // Also when only the access list changed: the mapping targets it
+        if (share.automount || data.automount) await setDriveMapping(share.name, data.access, data.automount);
     } finally {
         cache.invalidate(k => k === NET_CONF_KEY);
     }
@@ -170,6 +190,7 @@ export async function deleteShare(name: string, deleteData: boolean): Promise<vo
     cache.invalidate(k => k === NET_CONF_KEY);
     const share = await findShare(name);
     try {
+        if (share.automount) await setDriveMapping(share.name, [], null);
         await runAsRoot(["net", "conf", "delshare", share.name]);
         if (deleteData) await runAsRoot(["rm", "-rf", "--one-file-system", "--", share.path]);
     } finally {

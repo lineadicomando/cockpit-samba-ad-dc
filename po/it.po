@@ -830,3 +830,27 @@ msgstr "Il nome non può iniziare con un trattino."
 
 msgid "This name is reserved by Samba."
 msgstr "Questo nome è riservato da Samba."
+
+msgid "Drive"
+msgstr "Unità"
+
+msgid "Network drive"
+msgstr "Unità di rete"
+
+msgid "Map as a network drive at logon"
+msgstr "Connetti come unità di rete all'accesso"
+
+msgid "Windows computers in the domain connect the folder automatically for the users and groups above."
+msgstr "I computer Windows del dominio collegano automaticamente la cartella per gli utenti e i gruppi indicati sopra."
+
+msgid "Drive letter"
+msgstr "Lettera di unità"
+
+msgid "Drive label"
+msgstr "Nome dell'unità"
+
+msgid "Name shown in File Explorer. Defaults to the folder name."
+msgstr "Nome mostrato in Esplora file. Se vuoto, si usa il nome della cartella."
+
+msgid "No drive letters are available."
+msgstr "Non ci sono lettere di unità disponibili."

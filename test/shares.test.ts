@@ -30,6 +30,9 @@ function isCmd(call: SpawnCall, ...prefix: string[]): boolean {
 function handler(unknown: string[] = []) {
     return (call: SpawnCall): string => {
         if (isCmd(call, "testparm")) return "SCHOOL\n";
+        if (isCmd(call, "ldbsearch") && call.args.includes("base") && call.args.includes("")) {
+            return "dn: \ndefaultNamingContext: DC=school,DC=internal\n";
+        }
         if (isCmd(call, "net", "conf", "list")) return NET_CONF;
         if (isCmd(call, "getent")) {
             const name = call.args[2].split("\\")[1];
@@ -59,7 +62,7 @@ describe("listShares", () => {
             name: "docs",
             path: "/srv/samba/shares/docs",
             comment: "Documents",
-            browseable: false,
+            browseable: false, automount: null,
             access: [
                 { name: "Teachers", kind: "group", level: "write" },
                 { name: "Students", kind: "group", level: "read" },
@@ -74,7 +77,7 @@ describe("createShare", () => {
         setSpawnHandler(handler());
         await createShare("Progetti", {
             comment: "",
-            browseable: true,
+            browseable: true, automount: null,
             access: [
                 { name: "Teachers", kind: "group", level: "write" },
                 { name: "mrossi", kind: "user", level: "read" },
@@ -96,7 +99,7 @@ describe("createShare", () => {
 
     it("rejects existing (case-insensitive), reserved and option-like names before touching the disk", async () => {
         setSpawnHandler(handler());
-        const data = { comment: "", browseable: true, access: [{ name: "Teachers", kind: "group" as const, level: "write" as const }] };
+        const data = { comment: "", browseable: true, automount: null, access: [{ name: "Teachers", kind: "group" as const, level: "write" as const }] };
         await assert.rejects(createShare("DOCS", data), /already exists/);
         await assert.rejects(createShare("sysvol", data), /Invalid share name/);
         await assert.rejects(createShare("-x", data), /Invalid share name/);
@@ -106,14 +109,14 @@ describe("createShare", () => {
 
     it("refuses a share without any user or group", async () => {
         setSpawnHandler(handler());
-        await assert.rejects(createShare("empty", { comment: "", browseable: true, access: [] }), /at least one/);
+        await assert.rejects(createShare("empty", { comment: "", browseable: true, automount: null, access: [] }), /at least one/);
         assert.equal(calls.length, 0);
     });
 
     it("reports unknown principals before changing permissions", async () => {
         setSpawnHandler(handler(["ghost"]));
         await assert.rejects(
-            createShare("x", { comment: "", browseable: true, access: [{ name: "ghost", kind: "user", level: "read" }] }),
+            createShare("x", { comment: "", browseable: true, automount: null, access: [{ name: "ghost", kind: "user", level: "read" }] }),
             /Unknown user or group: ghost/,
         );
         assert.ok(!calls.some(c => isCmd(c, "setfacl") || isCmd(c, "net", "conf", "addshare")));
@@ -125,7 +128,7 @@ describe("updateShare", () => {
         setSpawnHandler(handler());
         await updateShare("docs", {
             comment: "Documents",
-            browseable: false,
+            browseable: false, automount: null,
             access: [{ name: "Teachers", kind: "group", level: "read" }],
         });
         const remove = setfaclSpec("-x");
@@ -145,7 +148,7 @@ describe("updateShare", () => {
         setSpawnHandler(handler(["mrossi"]));
         await updateShare("docs", {
             comment: "",
-            browseable: true,
+            browseable: true, automount: null,
             access: [{ name: "Teachers", kind: "group", level: "write" }],
         });
         assert.ok(!setfaclSpec("-x").some(e => e.includes("mrossi")));
@@ -154,7 +157,7 @@ describe("updateShare", () => {
 
     it("does not manage shares outside the shares directory", async () => {
         setSpawnHandler(handler());
-        const data = { comment: "", browseable: true, access: [{ name: "Teachers", kind: "group" as const, level: "write" as const }] };
+        const data = { comment: "", browseable: true, automount: null, access: [{ name: "Teachers", kind: "group" as const, level: "write" as const }] };
         await assert.rejects(updateShare("manual", data), /not found/);
         await assert.rejects(updateShare("home", data), /not found/);
         assert.ok(!calls.some(c => isCmd(c, "setfacl")));

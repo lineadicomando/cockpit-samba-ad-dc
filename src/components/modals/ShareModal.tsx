@@ -3,10 +3,12 @@ import { useTranslation } from "react-i18next";
 import {
     Modal, ModalVariant, ModalHeader, ModalBody, ModalFooter,
     Form, FormGroup, TextInput, Checkbox,
+    FormSelect, FormSelectOption,
     FormHelperText, HelperText, HelperTextItem,
     Button, Alert,
 } from "@patternfly/react-core";
 import { createShare, updateShare } from "../../lib/shares.ts";
+import { DRIVE_LETTERS } from "../../lib/drivemaps.ts";
 import { SHARES_DIR } from "../../lib/exec.ts";
 import { validateShareName, shareNameViolationMessage } from "../../lib/validators.ts";
 import type { SharedFolder, ShareAccess } from "../../lib/types.ts";
@@ -17,17 +19,23 @@ interface Props {
     share?: SharedFolder;
     // Names of the existing shares, to reject duplicates before submitting
     existingNames: string[];
+    // Drive letters mapped by the other shares
+    usedLetters: string[];
     onClose: () => void;
     onSuccess: () => void;
 }
 
-export function ShareModal({ share, existingNames, onClose, onSuccess }: Props) {
+export function ShareModal({ share, existingNames, usedLetters, onClose, onSuccess }: Props) {
     const { t } = useTranslation();
     const isEdit = share !== undefined;
     const [name, setName] = useState(share?.name ?? "");
     const [comment, setComment] = useState(share?.comment ?? "");
     const [browseable, setBrowseable] = useState(share?.browseable ?? true);
     const [access, setAccess] = useState<ShareAccess[]>(share?.access ?? []);
+    const freeLetters = DRIVE_LETTERS.filter(l => !usedLetters.includes(l));
+    const [automount, setAutomount] = useState(share?.automount != null);
+    const [letter, setLetter] = useState(share?.automount?.letter ?? freeLetters[0] ?? "");
+    const [driveLabel, setDriveLabel] = useState(share?.automount?.label ?? "");
     const [error, setError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
 
@@ -43,9 +51,15 @@ export function ShareModal({ share, existingNames, onClose, onSuccess }: Props) 
             }
         }
         if (access.length === 0) { setError(t("Add at least one user or group.")); return; }
+        if (automount && !letter) { setError(t("No drive letters are available.")); return; }
         setSubmitting(true);
         setError(null);
-        const data = { comment: comment.trim(), browseable, access };
+        const data = {
+            comment: comment.trim(),
+            browseable,
+            access,
+            automount: automount ? { letter, label: driveLabel.trim() } : null,
+        };
         try {
             if (isEdit) await updateShare(share.name, data);
             else await createShare(trimmedName, data);
@@ -102,6 +116,37 @@ export function ShareModal({ share, existingNames, onClose, onSuccess }: Props) 
                             </HelperText>
                         </FormHelperText>
                     </FormGroup>
+                    <FormGroup label={t("Network drive")} fieldId="sh-automount">
+                        <Checkbox
+                            id="sh-automount"
+                            label={t("Map as a network drive at logon")}
+                            description={t("Windows computers in the domain connect the folder automatically for the users and groups above.")}
+                            isChecked={automount}
+                            onChange={(_e, v) => setAutomount(v)}
+                        />
+                    </FormGroup>
+                    {automount && (
+                        <>
+                            <FormGroup label={t("Drive letter")} isRequired fieldId="sh-letter">
+                                <FormSelect id="sh-letter" value={letter} onChange={(_e, v) => setLetter(v)}>
+                                    {freeLetters.map(l => <FormSelectOption key={l} value={l} label={`${l}:`} />)}
+                                </FormSelect>
+                            </FormGroup>
+                            <FormGroup label={t("Drive label")} fieldId="sh-label">
+                                <TextInput
+                                    id="sh-label"
+                                    value={driveLabel}
+                                    placeholder={trimmedName}
+                                    onChange={(_e, v) => setDriveLabel(v)}
+                                />
+                                <FormHelperText>
+                                    <HelperText>
+                                        <HelperTextItem>{t("Name shown in File Explorer. Defaults to the folder name.")}</HelperTextItem>
+                                    </HelperText>
+                                </FormHelperText>
+                            </FormGroup>
+                        </>
+                    )}
                 </Form>
             </ModalBody>
             <ModalFooter>

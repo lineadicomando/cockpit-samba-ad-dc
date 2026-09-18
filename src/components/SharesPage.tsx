@@ -143,6 +143,7 @@ export function SharesPage() {
                             <Th>{t("Name")}</Th>
                             <Th>{t("Description")}</Th>
                             <Th>{t("Access")}</Th>
+                            <Th>{t("Drive")}</Th>
                             <Th>{t("Folder")}</Th>
                             <Th screenReaderText={t("Row actions")} />
                         </Tr>
@@ -171,6 +172,9 @@ export function SharesPage() {
                                         ))}
                                     </LabelGroup>
                                 </Td>
+                                <Td dataLabel={t("Drive")}>
+                                    {s.automount ? `${s.automount.letter}: ${s.automount.label}` : "—"}
+                                </Td>
                                 <Td dataLabel={t("Folder")}><code>{s.path}</code></Td>
                                 <Td isActionCell>
                                     <ActionsColumn items={rowActions(s)} />
@@ -198,6 +202,9 @@ export function SharesPage() {
                 <ShareModal
                     share={modal.kind === "edit" ? modal.share : undefined}
                     existingNames={shares.map(s => s.name)}
+                    usedLetters={shares
+                        .filter(s => s.automount && !(modal.kind === "edit" && s.name === modal.share.name))
+                        .map(s => s.automount!.letter)}
                     onClose={() => setModal({ kind: "none" })}
                     onSuccess={() => { setModal({ kind: "none" }); loadShares(); }}
                 />

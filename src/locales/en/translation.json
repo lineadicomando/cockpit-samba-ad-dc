@@ -59,6 +59,8 @@
   "Disable users": "Disable users",
   "Disabled": "Disabled",
   "Drive": "Drive",
+  "Drive label": "Drive label",
+  "Drive letter": "Drive letter",
   "Edit": "Edit",
   "Edit shared folder: {{name}}": "Edit shared folder: {{name}}",
   "Email": "Email",
@@ -120,6 +122,7 @@
   "Loading user": "Loading user",
   "Loading users": "Loading users",
   "Manage members": "Manage members",
+  "Map as a network drive at logon": "Map as a network drive at logon",
   "Member of": "Member of",
   "Members": "Members",
   "Members of {{name}}": "Members of {{name}}",
@@ -132,6 +135,8 @@
   "Name cannot start with a dash.": "Name cannot start with a dash.",
   "Name contains invalid characters: \" / \\ [ ] : ; | = , + * ? < > %": "Name contains invalid characters: \" / \\ [ ] : ; | = , + * ? < > %",
   "Name is required.": "Name is required.",
+  "Name shown in File Explorer. Defaults to the folder name.": "Name shown in File Explorer. Defaults to the folder name.",
+  "Network drive": "Network drive",
   "Never": "Never",
   "New name": "New name",
   "New password": "New password",
@@ -142,6 +147,7 @@
   "No domain computers are available.": "No domain computers are available.",
   "No domain groups are available.": "No domain groups are available.",
   "No domain users are available.": "No domain users are available.",
+  "No drive letters are available.": "No drive letters are available.",
   "No groups found": "No groups found",
   "No groups in common": "No groups in common",
   "No groups match the filter": "No groups match the filter",
@@ -251,5 +257,6 @@
   "users_will_skip_one": "{{count}} user will be skipped",
   "users_will_skip_other": "{{count}} users will be skipped",
   "Visible when browsing the server": "Visible when browsing the server",
-  "When unchecked, the folder can still be opened by typing its path.": "When unchecked, the folder can still be opened by typing its path."
+  "When unchecked, the folder can still be opened by typing its path.": "When unchecked, the folder can still be opened by typing its path.",
+  "Windows computers in the domain connect the folder automatically for the users and groups above.": "Windows computers in the domain connect the folder automatically for the users and groups above."
 }
