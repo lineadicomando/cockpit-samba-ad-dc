@@ -42,3 +42,21 @@ export interface PasswordPolicy {
 }
 
 export type LdapFields = Record<string, string | string[]>;
+
+export type ShareAccessLevel = "read" | "write";
+
+// A user or group granted access to a shared folder, by sAMAccountName
+// (without the "DOMAIN\" prefix).
+export interface ShareAccess {
+    name: string;
+    kind: "user" | "group";
+    level: ShareAccessLevel;
+}
+
+export interface SharedFolder {
+    name: string;
+    path: string;
+    comment: string;
+    browseable: boolean;
+    access: ShareAccess[];
+}

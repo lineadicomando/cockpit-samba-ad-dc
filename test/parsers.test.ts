@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { parseLdapShow, parseLdapMulti, parseList, deriveUserStatus, deriveLastActivity, ridFromSid, dnToName, parseGroupType } from "../src/lib/parsers.ts";
+import { parseLdapShow, parseLdapMulti, parseList, deriveUserStatus, deriveLastActivity, ridFromSid, dnToName, parseGroupType, parseNetConf, parseSmbUserList, parseSmbBool } from "../src/lib/parsers.ts";
 
 describe("parseList", () => {
     it("splits output in names", () => {
@@ -179,5 +179,50 @@ describe("dnToName", () => {
     });
     it("is case-insensitive on cn=", () => {
         assert.equal(dnToName("cn=alice,DC=acme"), "alice");
+    });
+});
+
+describe("parseNetConf", () => {
+    it("splits sections and lowercases parameter names", () => {
+        const raw = "[home]\n\tpath = /srv/samba/home\n\tRead Only = no\n\n[docs]\n\tpath = /srv/samba/shares/docs\n\tcomment = \n";
+        const conf = parseNetConf(raw);
+        assert.deepEqual([...conf.keys()], ["home", "docs"]);
+        assert.equal(conf.get("home")?.["read only"], "no");
+        assert.equal(conf.get("docs")?.["comment"], "");
+    });
+
+    it("keeps values containing '='", () => {
+        const conf = parseNetConf("[x]\n\tcomment = a = b\n");
+        assert.equal(conf.get("x")?.["comment"], "a = b");
+    });
+});
+
+describe("parseSmbUserList", () => {
+    it("parses quoted groups and users and strips the domain", () => {
+        assert.deepEqual(parseSmbUserList('@"SCHOOL\\Domain Users" "SCHOOL\\mrossi"'), [
+            { name: "Domain Users", kind: "group" },
+            { name: "mrossi", kind: "user" },
+        ]);
+    });
+
+    it("accepts unquoted, comma-separated and +/& prefixed entries", () => {
+        assert.deepEqual(parseSmbUserList("alice, +staff &SCHOOL\\teachers"), [
+            { name: "alice", kind: "user" },
+            { name: "staff", kind: "group" },
+            { name: "teachers", kind: "group" },
+        ]);
+    });
+
+    it("returns an empty list for an empty value", () => {
+        assert.deepEqual(parseSmbUserList(""), []);
+    });
+});
+
+describe("parseSmbBool", () => {
+    it("parses smb.conf booleans with a fallback", () => {
+        assert.equal(parseSmbBool("Yes", false), true);
+        assert.equal(parseSmbBool("0", true), false);
+        assert.equal(parseSmbBool(undefined, true), true);
+        assert.equal(parseSmbBool("maybe", false), false);
     });
 });

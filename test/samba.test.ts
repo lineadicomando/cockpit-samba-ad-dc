@@ -105,9 +105,9 @@ describe("provisionHomeDir", () => {
             if (isCmd(call, "samba-tool", "user", "show")) {
                 return `dn: CN=${call.args[3]},CN=Users,DC=school,DC=internal\nsAMAccountName: ${call.args[3]}\n`;
             }
-            if (isCmd(call, "net", "conf", "showshare")) {
+            if (isCmd(call, "net", "conf", "getparm")) {
                 if (!shareExists) throw new Error("share not found");
-                return "[home]\n";
+                return "/srv/samba/home\n";
             }
             if (isCmd(call, "net", "conf", "addshare")) {
                 // Real "net conf addshare" fails if the share already exists
@@ -125,11 +125,28 @@ describe("provisionHomeDir", () => {
 
         assert.equal(addshareCount, 1);
         for (const u of users) {
-            const chown = calls.find(c => isCmd(c, "chown") && c.args[2] === `/home/samba/${u}`);
-            assert.deepEqual(chown?.args, ["chown", `${u}:`, `/home/samba/${u}`]);
+            const chown = calls.find(c => isCmd(c, "chown") && c.args[2] === `/srv/samba/home/${u}`);
+            assert.deepEqual(chown?.args, ["chown", `${u}:`, `/srv/samba/home/${u}`]);
             const modify = calls.find(c => isCmd(c, "ldbmodify") && c.input?.includes(`CN=${u},`));
             assert.ok(modify?.input?.includes(`homeDirectory: \\\\DC\\home\\${u}`));
             assert.ok(modify?.input?.includes("homeDrive: H:"));
         }
+    });
+});
+
+describe("home share", () => {
+    it("moves an existing home share to the current base directory", async () => {
+        // Separate module instance: the home share promise above is already settled
+        // @ts-expect-error -- the query string is not a path TypeScript can resolve
+        const { provisionHomeDir: provision } = await import("../src/lib/samba.ts?home-move");
+        setSpawnHandler(call => {
+            if (isCmd(call, "testparm")) return "DC\n";
+            if (isCmd(call, "samba-tool", "user", "show")) return "dn: CN=u1,CN=Users,DC=school,DC=internal\n";
+            if (isCmd(call, "net", "conf", "getparm")) return "/home/samba\n";
+            return "";
+        });
+        await provision("u1");
+        assert.ok(calls.some(c => c.args.join(" ") === "net conf setparm home path /srv/samba/home"));
+        assert.ok(!calls.some(c => isCmd(c, "net", "conf", "addshare")));
     });
 });

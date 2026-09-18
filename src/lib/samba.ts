@@ -1,13 +1,11 @@
 import cockpit from "cockpit";
-import { createCache } from "./cache.ts";
+import { cache, cacheKey, checkName, runAsRoot, getDCNetbiosName, HOMES_DIR } from "./exec.ts";
 import type { User, Group, Computer, PasswordPolicy, LdapFields } from "./types.ts";
 import {
     parseList, parseLdapShow, parseLdapMulti, firstValue, listValue,
     deriveUserStatus, deriveLastActivity, ridFromSid, dnToName,
     parseDomainPasswordSettings, parseGroupType,
 } from "./parsers.ts";
-
-const cache = createCache();
 
 const LDB_PATH = "/var/lib/samba/private/sam.ldb";
 const LDB_KEY_USERS = "ldb:users";
@@ -23,17 +21,8 @@ const PROTECTED_GROUPS = new Set([
     "dnsadmins", "dnsupdateproxy",
 ]);
 
-// Defense in depth for names reaching samba-tool/chown as positional args:
-// a leading "-" would be parsed as an option. The UI validates new names, but
-// existing directory objects and future callers go through here too.
-function checkName(...names: string[]): void {
-    for (const name of names) {
-        if (!name || name.startsWith("-")) throw new Error(`Invalid account name: "${name}"`);
-    }
-}
-
 async function runSamba(args: string[]): Promise<string> {
-    return cockpit.spawn(["samba-tool", ...args], { superuser: "require", err: "message" });
+    return runAsRoot(["samba-tool", ...args]);
 }
 
 // Feeds secrets via stdin (samba-tool's getpass() falls back to stdin without a
@@ -59,12 +48,8 @@ async function runSambaCached(args: string[], ttlMs: number): Promise<string> {
     return output;
 }
 
-function cacheKey(...args: string[]): string {
-    return args.join("\x1f");
-}
-
 async function runLdb(args: string[]): Promise<string> {
-    return cockpit.spawn(["ldbsearch", ...args], { superuser: "require", err: "message" });
+    return runAsRoot(["ldbsearch", ...args]);
 }
 
 async function runLdbCached(key: string, args: string[], ttlMs: number): Promise<string> {
@@ -412,19 +397,6 @@ export async function deleteComputer(name: string): Promise<void> {
 
 // --- Home directories ---
 
-// Read from the local config (see getBaseDN for why not "domain info").
-let dcNetbiosName: string | null = null;
-
-async function getDCNetbiosName(): Promise<string> {
-    if (dcNetbiosName) return dcNetbiosName;
-    const raw = await cockpit.spawn(["testparm", "-s", "--parameter-name=netbios name"],
-        { superuser: "require", err: "message" });
-    const name = raw.trim();
-    if (!name) throw new Error("Cannot determine DC NetBIOS name from smb.conf");
-    dcNetbiosName = name;
-    return name;
-}
-
 async function getUserDN(username: string): Promise<string> {
     const raw = await runSambaCached(["user", "show", username], 30_000);
     const fields = parseLdapShow(raw);
@@ -467,35 +439,39 @@ function ensureHomeShare(): Promise<void> {
 }
 
 async function createHomeShareIfMissing(): Promise<void> {
+    let currentPath: string | null = null;
     try {
-        await cockpit.spawn(["net", "conf", "showshare", "home"], { superuser: "require", err: "message" });
-        return;
+        currentPath = (await runAsRoot(["net", "conf", "getparm", "home", "path"])).trim();
     } catch {
         // share does not exist yet
     }
-    await cockpit.spawn(["net", "conf", "addshare", "home", "/home/samba", "writeable=y", "guest_ok=n"],
-        { superuser: "require", err: "message" });
+    if (currentPath === HOMES_DIR) return;
+    if (currentPath !== null) {
+        // Created by an older version with another base directory
+        await runAsRoot(["net", "conf", "setparm", "home", "path", HOMES_DIR]);
+        return;
+    }
+    await runAsRoot(["net", "conf", "addshare", "home", HOMES_DIR, "writeable=y", "guest_ok=n"]);
     for (const [param, value] of [
         ["browseable", "no"],
         ["create mask", "0700"],
         ["directory mask", "0700"],
     ] as const) {
-        await cockpit.spawn(["net", "conf", "setparm", "home", param, value],
-            { superuser: "require", err: "message" });
+        await runAsRoot(["net", "conf", "setparm", "home", param, value]);
     }
 }
 
 export async function provisionHomeDir(username: string): Promise<void> {
     checkName(username);
     const [netbiosName, dn] = await Promise.all([getDCNetbiosName(), getUserDN(username)]);
-    const homeDir = `/home/samba/${username}`;
+    const homeDir = `${HOMES_DIR}/${username}`;
     const uncPath = `\\\\${netbiosName}\\home\\${username}`;
 
-    await cockpit.spawn(["mkdir", "-p", homeDir], { superuser: "require", err: "message" });
-    await cockpit.spawn(["chmod", "700", homeDir], { superuser: "require", err: "message" });
+    await runAsRoot(["mkdir", "-p", homeDir]);
+    await runAsRoot(["chmod", "700", homeDir]);
     // "user:" sets the group to the user's login group; unlike "user:user" it
     // does not depend on winbind also mapping the user SID as a group.
-    await cockpit.spawn(["chown", `${username}:`, homeDir], { superuser: "require", err: "message" });
+    await runAsRoot(["chown", `${username}:`, homeDir]);
     await setHomeDirAttributes(dn, "H:", uncPath);
     await ensureHomeShare();
     cache.invalidate(k =>

@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { validateUsername, validateGroupName, validateMemberName } from "../src/lib/validators.ts";
+import { validateUsername, validateGroupName, validateMemberName, validateShareName } from "../src/lib/validators.ts";
 
 describe("validateUsername", () => {
     it("accepts typical usernames", () => {
@@ -76,5 +76,37 @@ describe("validateMemberName", () => {
 
     it("rejects option-like names", () => {
         assert.equal(validateMemberName("-x"), "leadingDash");
+    });
+});
+
+describe("validateShareName", () => {
+    it("accepts typical share names", () => {
+        assert.equal(validateShareName("Docenti"), null);
+        assert.equal(validateShareName("progetti 2026"), null);
+        assert.equal(validateShareName("a".repeat(80)), null);
+    });
+
+    it("rejects empty and too long names", () => {
+        assert.equal(validateShareName(""), "empty");
+        assert.equal(validateShareName("a".repeat(81)), "tooLong");
+    });
+
+    it("rejects characters invalid in share names or paths", () => {
+        for (const c of '"/\\[]:;|=,+*?<>%') {
+            assert.equal(validateShareName(`x${c}y`), "invalidChars", `expected '${c}' to be rejected`);
+        }
+        assert.equal(validateShareName("x\u0007y"), "invalidChars");
+    });
+
+    it("rejects leading/trailing spaces and a leading dash", () => {
+        assert.equal(validateShareName(" docs"), "surroundingSpaces");
+        assert.equal(validateShareName("docs "), "surroundingSpaces");
+        assert.equal(validateShareName("-docs"), "leadingDash");
+    });
+
+    it("rejects reserved names case-insensitively", () => {
+        for (const n of ["global", "HOMES", "SysVol", "netlogon", "home", "IPC$", ".", ".."]) {
+            assert.equal(validateShareName(n), "reserved", `expected '${n}' to be reserved`);
+        }
     });
 });

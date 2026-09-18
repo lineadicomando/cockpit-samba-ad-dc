@@ -136,3 +136,48 @@ export function parseDomainPasswordSettings(raw: string): { complexityRequired: 
     }
     return { complexityRequired, minLength, historyLength };
 }
+
+// Parses "net conf list" / "net conf showshare" output: "[section]" headers
+// followed by tab-indented "param = value" lines. Parameter names are
+// lowercased (smb.conf treats them case-insensitively).
+export function parseNetConf(raw: string): Map<string, Record<string, string>> {
+    const sections = new Map<string, Record<string, string>>();
+    let current: Record<string, string> | null = null;
+    for (const line of raw.split("\n")) {
+        const header = /^\s*\[(.+)\]\s*$/.exec(line);
+        if (header) {
+            current = {};
+            sections.set(header[1], current);
+            continue;
+        }
+        const sep = line.indexOf("=");
+        if (!current || sep <= 0) continue;
+        current[line.slice(0, sep).trim().toLowerCase()] = line.slice(sep + 1).trim();
+    }
+    return sections;
+}
+
+// Parses an smb.conf user list ("valid users", "read list", ...) such as
+// `@"SCHOOL\Domain Users" "SCHOOL\mrossi" alice`. Entries are separated by
+// spaces or commas unless quoted; a leading "@", "+" or "&" marks a group.
+// The "DOMAIN\" prefix is stripped.
+export function parseSmbUserList(value: string): { name: string; kind: "user" | "group" }[] {
+    const entries: { name: string; kind: "user" | "group" }[] = [];
+    const re = /([@+&]*)(?:"([^"]*)"|([^\s,"]+))/g;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(value)) !== null) {
+        const raw = m[2] ?? m[3] ?? "";
+        const name = raw.slice(raw.lastIndexOf("\\") + 1);
+        if (name) entries.push({ name, kind: m[1] ? "group" : "user" });
+    }
+    return entries;
+}
+
+// smb.conf booleans: yes/no, true/false, 1/0 (case-insensitive).
+export function parseSmbBool(value: string | undefined, fallback: boolean): boolean {
+    if (value === undefined) return fallback;
+    const v = value.trim().toLowerCase();
+    if (["yes", "true", "1"].includes(v)) return true;
+    if (["no", "false", "0"].includes(v)) return false;
+    return fallback;
+}
