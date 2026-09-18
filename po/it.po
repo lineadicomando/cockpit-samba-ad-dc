@@ -795,8 +795,14 @@ msgstr "Visibile nell'elenco delle risorse del server"
 msgid "When unchecked, the folder can still be opened by typing its path."
 msgstr "Se disattivato, la cartella resta raggiungibile digitandone il percorso."
 
-msgid "Only the users and groups listed here can open the folder."
-msgstr "Solo gli utenti e i gruppi elencati possono aprire la cartella."
+msgid "Only the users and groups listed here can open the folder. A user matching several entries gets read-only access if any of them is read-only."
+msgstr "Solo gli utenti e i gruppi elencati possono aprire la cartella. Se un utente rientra in più voci e almeno una è in sola lettura, ottiene la sola lettura."
+
+msgid "This user has no access to any shared folder."
+msgstr "Questo utente non ha accesso ad alcuna cartella condivisa."
+
+msgid "Granted through"
+msgstr "Accesso tramite"
 
 msgid "Add at least one user or group."
 msgstr "Aggiungi almeno un utente o un gruppo."

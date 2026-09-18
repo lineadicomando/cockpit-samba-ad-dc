@@ -111,7 +111,7 @@ export function ShareModal({ share, existingNames, usedLetters, onClose, onSucce
                         <FormHelperText>
                             <HelperText>
                                 <HelperTextItem>
-                                    {t("Only the users and groups listed here can open the folder.")}
+                                    {t("Only the users and groups listed here can open the folder. A user matching several entries gets read-only access if any of them is read-only.")}
                                 </HelperTextItem>
                             </HelperText>
                         </FormHelperText>

@@ -10,11 +10,16 @@ import {
     FormSelect, FormSelectOption,
     ActionGroup, Button,
     Divider,
+    Label, LabelGroup,
+    EmptyState, EmptyStateBody,
 } from "@patternfly/react-core";
+import { Table, Thead, Tbody, Tr, Th, Td } from "@patternfly/react-table";
+import { UserIcon, UsersIcon } from "@patternfly/react-icons";
 import cockpit from "cockpit";
 import { getUserDetails, refreshUser, modifyUser, setUserPassword, getPasswordPolicy, addGroupMembers, removeGroupMembers, setPrimaryGroup as savePrimaryGroup, provisionHomeDir } from "../lib/samba.ts";
+import { listShares, effectiveShareAccess } from "../lib/shares.ts";
 import type { User } from "../lib/types.ts";
-import { usePasswordPolicy, usePasswordGenerator } from "../lib/hooks.ts";
+import { usePasswordPolicy, usePasswordGenerator, useSingleLoad } from "../lib/hooks.ts";
 import { checkPasswordAgainstPolicy } from "../lib/passwordUtils.ts";
 import { validateUsername, usernameViolationMessage } from "../lib/validators.ts";
 import { PasswordField, PasswordPolicyInfo, PasswordPolicyUnavailable } from "./PasswordField.tsx";
@@ -83,6 +88,10 @@ export function UserDetailPage({ username }: Props) {
                     <Divider />
                     <PageSection hasBodyWrapper={false}>
                         <HomeDirSection user={user} onUpdate={setUser} />
+                    </PageSection>
+                    <Divider />
+                    <PageSection hasBodyWrapper={false}>
+                        <SharedFoldersSection user={user} />
                     </PageSection>
                 </>
             )}
@@ -329,6 +338,72 @@ function HomeDirSection({ user, onUpdate }: { user: User; onUpdate: (u: User) =>
                         </ActionGroup>
                     )}
                 </Form>
+            </CardBody>
+        </Card>
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Shared folders section (read-only: access is edited on the share)
+// ---------------------------------------------------------------------------
+function SharedFoldersSection({ user }: { user: User }) {
+    const { t } = useTranslation();
+    const { items: shares, loading, error } = useSingleLoad(listShares);
+
+    // Recomputed from user.groups, so it follows edits in the Groups section
+    const rows = shares
+        .map(share => ({ share, access: effectiveShareAccess(share, user.username, user.groups) }))
+        .filter(r => r.access !== null)
+        .sort((a, b) => a.share.name.localeCompare(b.share.name));
+
+    return (
+        <Card isPlain>
+            <CardTitle><Title headingLevel="h2" size="xl">{t("Shared folders")}</Title></CardTitle>
+            <CardBody>
+                {error && <Alert variant="danger" isInline title={t("Failed to load shared folders")}>{error}</Alert>}
+                {loading && <Spinner size="md" aria-label={t("Loading shared folders")} />}
+                {!loading && !error && rows.length === 0 && (
+                    <EmptyState variant="xs" titleText={t("No shared folders")} headingLevel="h4">
+                        <EmptyStateBody>{t("This user has no access to any shared folder.")}</EmptyStateBody>
+                    </EmptyState>
+                )}
+                {!loading && rows.length > 0 && (
+                    <Table aria-label={t("Shared folders table")} variant="compact">
+                        <Thead>
+                            <Tr>
+                                <Th>{t("Name")}</Th>
+                                <Th>{t("Permissions")}</Th>
+                                <Th>{t("Granted through")}</Th>
+                                <Th>{t("Drive")}</Th>
+                            </Tr>
+                        </Thead>
+                        <Tbody>
+                            {rows.map(({ share, access }) => (
+                                <Tr key={share.name}>
+                                    <Td dataLabel={t("Name")}>{share.name}</Td>
+                                    <Td dataLabel={t("Permissions")}>
+                                        {access!.level === "write"
+                                            ? <Label color="blue">{t("Read and write")}</Label>
+                                            : <Label color="grey">{t("Read only")}</Label>}
+                                    </Td>
+                                    <Td dataLabel={t("Granted through")}>
+                                        <LabelGroup>
+                                            {access!.via.map(a => (
+                                                <Label key={`${a.kind}:${a.name}`} isCompact variant="outline"
+                                                    icon={a.kind === "group" ? <UsersIcon /> : <UserIcon />}>
+                                                    {a.name}
+                                                </Label>
+                                            ))}
+                                        </LabelGroup>
+                                    </Td>
+                                    <Td dataLabel={t("Drive")}>
+                                        {share.automount ? `${share.automount.letter}: ${share.automount.label}` : "—"}
+                                    </Td>
+                                </Tr>
+                            ))}
+                        </Tbody>
+                    </Table>
+                )}
             </CardBody>
         </Card>
     );

@@ -11,8 +11,9 @@ Cockpit module for managing a Samba Active Directory Domain Controller via `samb
 
 ## Features
 
-- **Users** — list, create, edit password, enable/disable, delete
+- **Users** — list, create, edit password, enable/disable, delete, home directory provisioning
 - **Groups** — list, create, rename, delete, member management (add/remove)
+- **Shared folders** — create, edit and delete folders shared with domain users and groups (read-only or read-write), optionally mapped as a network drive at logon on Windows clients
 - **Computers** — list, delete
 - Automatic protection of built-in system objects (Administrator, krbtgt, Domain Admins, etc.)
 - Live search and filter in every section
@@ -36,7 +37,8 @@ Cockpit module for managing a Samba Active Directory Domain Controller via `samb
 - Make
 - Cockpit ≥ 337 installed on the server
 - `samba-tool` available at `/usr/bin/samba-tool`
-- `registry shares = yes` (or `include = registry`) in `smb.conf` — required for the home-directory share created via `net conf` (enabled by default on a Samba AD DC)
+- `registry shares = yes` (or `include = registry`) in `smb.conf` — required for the home and shared-folder shares created via `net conf` (enabled by default on a Samba AD DC)
+- `setfacl` (package `acl`) on the server, for shared-folder permissions
 - Node.js ≥ 18 on the development machine
 - npm (bundled with Node.js)
 
@@ -81,6 +83,36 @@ make check
 # Watch mode (auto-rebuild on save)
 make watch
 ```
+
+## Files and shares on the server
+
+Everything the module creates on disk lives under `/srv/samba`:
+
+| Path | Share | Contents |
+|---|---|---|
+| `/srv/samba/home/<user>` | `home` (hidden) | Home directories, mapped as `H:` through the user's `homeDrive`/`homeDirectory` |
+| `/srv/samba/shares/<name>` | `<name>` | Shared folders |
+
+Shared folders are registry shares (`net conf`). Access is enforced by the
+share (`valid users`, plus `read list` for read-only entries) and by a POSIX
+ACL on the folder tree, the same model used for home directories: Samba's
+`acl_xattr` derives the Windows ACL from it. Only shares whose path is under
+`/srv/samba/shares` are listed and managed by the module.
+
+### Network drive mapping
+
+A shared folder can be mapped as a network drive at logon for the same users
+and groups that can access it. The module keeps a dedicated GPO,
+**Cockpit - Mapped drives**, linked to the domain root: its Group Policy
+Preferences `Drives.xml` holds one drive per mapped folder, targeted at the
+folder's users and groups. The GPO is created on first use directly in the
+local `sam.ldb` and sysvol, so no domain credentials are needed; after each
+change the GPO version is increased and the sysvol ACLs are reset
+(`samba-tool ntacl sysvolreset`).
+
+Drive mapping applies to Windows clients; drive letters E–Z are available
+(H is reserved for home directories). Clients pick up changes at the next
+logon or `gpupdate`.
 
 ## Privilege escalation
 

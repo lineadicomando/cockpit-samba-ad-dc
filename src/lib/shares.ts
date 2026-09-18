@@ -2,7 +2,7 @@ import { cache, checkName, runAsRoot, getWorkgroup, SHARES_DIR } from "./exec.ts
 import { parseNetConf, parseSmbUserList, parseSmbBool } from "./parsers.ts";
 import { validateShareName } from "./validators.ts";
 import { listDriveMappings, setDriveMapping } from "./drivemaps.ts";
-import type { SharedFolder, ShareAccess, DriveMapping } from "./types.ts";
+import type { SharedFolder, ShareAccess, ShareAccessLevel, DriveMapping } from "./types.ts";
 
 const NET_CONF_KEY = "net:conf";
 
@@ -196,4 +196,22 @@ export async function deleteShare(name: string, deleteData: boolean): Promise<vo
     } finally {
         cache.invalidate(k => k === NET_CONF_KEY);
     }
+}
+
+export interface EffectiveShareAccess {
+    level: ShareAccessLevel;
+    // The entries that grant access: the user itself and/or its groups
+    via: ShareAccess[];
+}
+
+// What a user gets on a share, from direct entries and the groups listed on
+// the user (nested groups are not expanded). Mirrors smbd: a match in
+// "read list" makes the share read-only even if another entry grants write.
+export function effectiveShareAccess(share: SharedFolder, username: string, groups: string[]): EffectiveShareAccess | null {
+    const groupSet = new Set(groups.map(g => g.toLowerCase()));
+    const via = share.access.filter(a =>
+        a.kind === "user" ? a.name.toLowerCase() === username.toLowerCase() : groupSet.has(a.name.toLowerCase())
+    );
+    if (via.length === 0) return null;
+    return { level: via.some(a => a.level === "read") ? "read" : "write", via };
 }

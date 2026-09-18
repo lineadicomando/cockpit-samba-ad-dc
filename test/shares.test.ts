@@ -2,7 +2,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { setSpawnHandler, calls, type SpawnCall } from "./mocks/cockpit.ts";
-import { listShares, createShare, updateShare, deleteShare } from "../src/lib/shares.ts";
+import { listShares, createShare, updateShare, deleteShare, effectiveShareAccess } from "../src/lib/shares.ts";
 
 const NET_CONF = [
     "[home]",
@@ -181,5 +181,28 @@ describe("deleteShare", () => {
         setSpawnHandler(handler());
         await assert.rejects(deleteShare("manual", true), /not found/);
         assert.ok(!calls.some(c => isCmd(c, "rm") || isCmd(c, "net", "conf", "delshare")));
+    });
+});
+
+describe("effectiveShareAccess", () => {
+    const share = {
+        name: "docs", path: "/srv/samba/shares/docs", comment: "", browseable: true, automount: null,
+        access: [
+            { name: "Teachers", kind: "group" as const, level: "write" as const },
+            { name: "Students", kind: "group" as const, level: "read" as const },
+            { name: "mrossi", kind: "user" as const, level: "write" as const },
+        ],
+    };
+
+    it("grants access through the user or its groups, case-insensitively", () => {
+        assert.deepEqual(effectiveShareAccess(share, "MRossi", []), { level: "write", via: [share.access[2]] });
+        assert.deepEqual(effectiveShareAccess(share, "carol", ["teachers", "Domain Users"]), { level: "write", via: [share.access[0]] });
+        assert.equal(effectiveShareAccess(share, "bob", ["Domain Users"]), null);
+    });
+
+    it("is read-only when any matching entry is read-only (smbd read list)", () => {
+        const r = effectiveShareAccess(share, "mrossi", ["Students"]);
+        assert.equal(r?.level, "read");
+        assert.equal(r?.via.length, 2);
     });
 });
