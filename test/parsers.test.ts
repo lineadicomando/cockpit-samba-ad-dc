@@ -132,11 +132,11 @@ describe("deriveUserStatus", () => {
 });
 
 describe("deriveLastActivity", () => {
-    it("returns Never for zero ticks", () => {
-        assert.equal(deriveLastActivity("0"), "Never");
+    it("returns empty (never) for zero ticks", () => {
+        assert.equal(deriveLastActivity("0"), "");
     });
-    it("returns Never for negative ticks", () => {
-        assert.equal(deriveLastActivity("-1"), "Never");
+    it("returns empty (never) for negative ticks", () => {
+        assert.equal(deriveLastActivity("-1"), "");
     });
     it("returns a date string for valid Windows ticks", () => {
         const unixMs = new Date("2024-01-01").getTime();

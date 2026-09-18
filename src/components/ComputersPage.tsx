@@ -145,7 +145,7 @@ export function ComputersPage() {
                                 <Td dataLabel={t("Name")}>{c.name}</Td>
                                 <Td dataLabel={t("ID")}>{c.id}</Td>
                                 <Td dataLabel={t("OS")}>{c.os}</Td>
-                                <Td dataLabel={t("Last logon")}>{c.lastLogon}</Td>
+                                <Td dataLabel={t("Last logon")}>{c.lastLogon || t("Never")}</Td>
                                 <Td isActionCell>
                                     <ActionsColumn items={rowActions(c)} />
                                 </Td>

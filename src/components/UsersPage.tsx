@@ -34,11 +34,11 @@ import {
   refreshUser,
   enableUser,
   disableUser,
-  listGroups,
 } from "../lib/samba.ts";
 import {
   useSingleLoad,
   usePagination,
+  useGroupNames,
   PER_PAGE_OPTIONS,
 } from "../lib/hooks.ts";
 import type { User } from "../lib/types.ts";
@@ -92,17 +92,7 @@ export function UsersPage({ refreshToken = 0 }: Props) {
   const [groupFilter, setGroupFilter] = useState<string | null>(null);
   const [groupSelectOpen, setGroupSelectOpen] = useState(false);
   const [groupSearch, setGroupSearch] = useState("");
-  const [allGroups, setAllGroups] = useState<string[]>([]);
-
-  useEffect(() => {
-    listGroups()
-      .then((rows) =>
-        setAllGroups(
-          rows.map((r) => r.name).sort((a, b) => a.localeCompare(b)),
-        ),
-      )
-      .catch(() => setAllGroups([]));
-  }, []);
+  const { groupNames: allGroups } = useGroupNames();
 
   const [selectedUsernames, setSelectedUsernames] = useState<Set<string>>(
     new Set(),
@@ -274,7 +264,7 @@ export function UsersPage({ refreshToken = 0 }: Props) {
                   onClick={() => setStatusSelectOpen((o) => !o)}
                   isExpanded={statusSelectOpen}
                 >
-                  {statusFilter === "all" ? t("All statuses") : t(statusFilter)}
+                  {statusFilter === "all" ? t("All statuses") : statusFilter === "Active" ? t("Active") : t("Disabled")}
                 </MenuToggle>
               )}
             >
@@ -622,13 +612,13 @@ export function UsersPage({ refreshToken = 0 }: Props) {
                       ))}
                       {u.groups.length > 2 && (
                         <span style={{ fontSize: "0.8em" }}>
-                          +{u.groups.length - 2} {t("more")}
+                          {t("n_more", { count: u.groups.length - 2 })}
                         </span>
                       )}
                     </>
                   )}
                 </Td>
-                <Td dataLabel={t("Last activity")}>{u.lastActivity}</Td>
+                <Td dataLabel={t("Last activity")}>{u.lastActivity || t("Never")}</Td>
                 <Td isActionCell>
                   <ActionsColumn
                     items={[

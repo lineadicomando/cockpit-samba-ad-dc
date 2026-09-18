@@ -8,7 +8,7 @@ import {
   type SetStateAction,
 } from "react";
 import cockpit from "cockpit";
-import { getPasswordPolicy } from "./samba.ts";
+import { getPasswordPolicy, listGroups } from "./samba.ts";
 import { generatePassword } from "./passwordUtils.ts";
 import type { PasswordPolicy } from "./types.ts";
 
@@ -108,6 +108,31 @@ export function usePagination<T>(items: T[], resetKey = "", defaultPerPage = 10)
 }
 
 // ---------------------------------------------------------------------------
+// useGroupNames — sorted names of all domain groups (for pickers and filters)
+// ---------------------------------------------------------------------------
+export function useGroupNames(enabled = true): {
+    groupNames: string[];
+    loading: boolean;
+    error: string | null;
+} {
+    const [groupNames, setGroupNames] = useState<string[]>([]);
+    const [loading, setLoading] = useState(enabled);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!enabled) return;
+        let cancelled = false;
+        listGroups()
+            .then(rows => { if (!cancelled) setGroupNames(rows.map(r => r.name).sort((a, b) => a.localeCompare(b))); })
+            .catch((e: unknown) => { if (!cancelled) setError(e instanceof Error ? e.message : String(e)); })
+            .finally(() => { if (!cancelled) setLoading(false); });
+        return () => { cancelled = true; };
+    }, [enabled]);
+
+    return { groupNames, loading, error };
+}
+
+// ---------------------------------------------------------------------------
 // usePasswordPolicy — loads domain password policy once at mount (cached)
 // ---------------------------------------------------------------------------
 export function usePasswordPolicy(): { policy: PasswordPolicy | null; policyError: string | null } {
@@ -164,10 +189,18 @@ export function usePasswordGenerator(policy: PasswordPolicy | null): {
             // Auto-clear after 60 s for security — but only if the clipboard
             // still holds this password, so unrelated content is never wiped.
             // Intentionally not cancelled on unmount.
+            // readText() is only attempted when read permission is already
+            // granted: otherwise Chrome prompts and Firefox pops up a "Paste"
+            // button a minute after the fact. Where the permission cannot be
+            // queried (Firefox), the clipboard is left as is.
             window.setTimeout(() => {
-                navigator.clipboard.readText()
-                    .then(current => (current === pwd ? navigator.clipboard.writeText("") : undefined))
-                    .catch(() => { /* read denied: do not blindly wipe */ });
+                navigator.permissions.query({ name: "clipboard-read" as PermissionName })
+                    .then(status => {
+                        if (status.state !== "granted") return;
+                        return navigator.clipboard.readText()
+                            .then(current => (current === pwd ? navigator.clipboard.writeText("") : undefined));
+                    })
+                    .catch(() => { /* not queryable or read denied: do not blindly wipe */ });
             }, 60_000);
         }).catch(() => {
             if (mountedRef.current) setCopyState("failed");

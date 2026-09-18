@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
     Select, SelectList, SelectOption,
@@ -7,7 +7,7 @@ import {
     Spinner,
     SearchInput,
 } from "@patternfly/react-core";
-import { listGroups } from "../lib/samba.ts";
+import { useGroupNames } from "../lib/hooks.ts";
 
 interface Props {
     selected: string[];
@@ -19,21 +19,13 @@ const ADMIN_GROUPS = new Set(["domain admins", "administrators", "enterprise adm
 
 export function GroupMultiSelect({ selected, onChange, isDisabled }: Props) {
     const { t } = useTranslation();
-    const [allGroups, setAllGroups] = useState<string[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { groupNames: allGroups, loading } = useGroupNames();
     const [open, setOpen] = useState(false);
     const [filterText, setFilterText] = useState("");
 
     const filteredGroups = allGroups.filter(g =>
         g.toLowerCase().includes(filterText.toLowerCase())
     );
-
-    useEffect(() => {
-        listGroups()
-            .then(rows => setAllGroups(rows.map(r => r.name).sort((a, b) => a.localeCompare(b))))
-            .catch(() => setAllGroups([]))
-            .finally(() => setLoading(false));
-    }, []);
 
     function toggle(group: string) {
         if (selected.includes(group)) {

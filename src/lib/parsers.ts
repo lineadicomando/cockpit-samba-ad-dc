@@ -84,15 +84,16 @@ export function deriveUserStatus(uacRaw: string): "Active" | "Disabled" | "Unkno
     return (uac & 2) === 2 ? "Disabled" : "Active";
 }
 
+// Returns "" when there was never a logon; the UI renders the translated "Never".
 export function deriveLastActivity(ticksRaw: string): string {
     // Windows FILETIME values exceed Number.MAX_SAFE_INTEGER; use BigInt to avoid precision loss.
-    if (!ticksRaw || !/^\d+$/.test(ticksRaw)) return "Never";
+    if (!ticksRaw || !/^\d+$/.test(ticksRaw)) return "";
     const ticks = BigInt(ticksRaw);
-    if (ticks <= 0n) return "Never";
+    if (ticks <= 0n) return "";
     const unixMs = Number(ticks / 10000n) - 11644473600000;
-    if (unixMs <= 0) return "Never";
+    if (unixMs <= 0) return "";
     const date = new Date(unixMs);
-    if (isNaN(date.getTime())) return "Never";
+    if (isNaN(date.getTime())) return "";
     return date.toLocaleDateString();
 }
 

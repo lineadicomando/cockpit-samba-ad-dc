@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import {
     Alert, Button, List, ListItem,
     MenuToggle, Modal, ModalBody, ModalFooter, ModalHeader, ModalVariant,
     SearchInput, Select, SelectList, SelectOption, Spinner,
 } from "@patternfly/react-core";
-import { listGroups, addGroupMembers, removeGroupMembers, setPrimaryGroup } from "../../lib/samba.ts";
+import { addGroupMembers, removeGroupMembers, setPrimaryGroup } from "../../lib/samba.ts";
+import { useGroupNames } from "../../lib/hooks.ts";
 import type { User } from "../../lib/types.ts";
 
 export type BulkGroupAction = "add-group" | "remove-group" | "change-primary-group";
@@ -32,9 +33,12 @@ function groupIntersection(users: User[]): string[] {
 
 export function BulkGroupModal({ action, users, onClose, onSuccess }: Props) {
     const { t } = useTranslation();
-    const [availableGroups, setAvailableGroups] = useState<string[]>([]);
-    const [loadingGroups, setLoadingGroups] = useState(action === "add-group");
-    const [groupLoadError, setGroupLoadError] = useState<string | null>(null);
+    // Adding offers every group; removing / changing primary only the groups
+    // all selected users share.
+    const isAdd = action === "add-group";
+    const { groupNames, loading: loadingGroups, error: groupLoadError } = useGroupNames(isAdd);
+    const commonGroups = useMemo(() => groupIntersection(users), [users]);
+    const availableGroups = isAdd ? groupNames : commonGroups;
     const [selectedGroup, setSelectedGroup] = useState("");
     const [groupSearch, setGroupSearch] = useState("");
     const [groupSelectOpen, setGroupSelectOpen] = useState(false);
@@ -47,22 +51,12 @@ export function BulkGroupModal({ action, users, onClose, onSuccess }: Props) {
     };
     const meta = META[action];
 
-    useEffect(() => {
-        if (action === "add-group") {
-            listGroups()
-                .then(gs => setAvailableGroups(gs.map(g => g.name).sort((a, b) => a.localeCompare(b))))
-                .catch(e => setGroupLoadError(e instanceof Error ? e.message : String(e)))
-                .finally(() => setLoadingGroups(false));
-        } else {
-            setAvailableGroups(groupIntersection(users));
-        }
-    }, [action]);
 
     const filteredGroups = availableGroups.filter(g =>
         g.toLowerCase().includes(groupSearch.toLowerCase())
     );
 
-    const noCommonGroups = action !== "add-group" && availableGroups.length === 0;
+    const noCommonGroups = !isAdd && availableGroups.length === 0;
     const isRunning = status.kind === "running";
     const isDone = status.kind === "error" || status.kind === "partial";
 

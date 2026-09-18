@@ -130,8 +130,6 @@ msgstr "Sconosciuto"
 msgid "Clear selection"
 msgstr "Deseleziona tutto"
 
-msgid "more"
-msgstr "altri"
 
 # ---------------------------------------------------------------------------
 # Azioni utenti
@@ -612,3 +610,70 @@ msgid "users_applies_to"
 msgid_plural "users_applies_to_plural"
 msgstr[0] "Si applica a {{count}} utente:"
 msgstr[1] "Si applica a {{count}} utenti:"
+
+# ---------------------------------------------------------------------------
+# Voci riallineate da src/locales/it/translation.json (2026-09-18)
+# ---------------------------------------------------------------------------
+
+msgid "{{name}}: failed"
+msgstr "{{name}}: operazione non riuscita"
+
+msgid "All types"
+msgstr "Tutti i tipi"
+
+msgid "Automatic clipboard copy failed. Copy the password manually."
+msgstr "Copia automatica negli appunti non riuscita. Copia la password manualmente."
+
+msgid "Complexity required: uppercase, lowercase, digit, symbol"
+msgstr "Complessità richiesta: maiuscole, minuscole, cifre, simboli"
+
+msgid "Default (Domain Users)"
+msgstr "Predefinito (Domain Users)"
+
+msgid "Failed to load password policy."
+msgstr "Impossibile caricare la policy delle password."
+
+msgid "Generate password"
+msgstr "Genera password"
+
+msgid "Hide password"
+msgstr "Nascondi password"
+
+msgid "Last {{n}} passwords cannot be reused"
+msgstr "Le ultime {{n}} password non possono essere riutilizzate"
+
+msgid "Minimum length: {{n}} characters"
+msgstr "Lunghezza minima: {{n}} caratteri"
+
+msgid "Never"
+msgstr "Mai"
+
+msgid "Only groups added above can be set as primary."
+msgstr "Solo i gruppi aggiunti sopra possono essere impostati come primari."
+
+msgid "Password does not meet the complexity requirements."
+msgstr "La password non soddisfa i requisiti di complessità."
+
+msgid "Show password"
+msgstr "Mostra password"
+
+msgid "Try clearing the search or type filter."
+msgstr "Prova a rimuovere il filtro di ricerca o di tipo."
+
+msgid "User \"{{name}}\" was created, but group assignment failed: {{error}}"
+msgstr "L'utente \"{{name}}\" è stato creato, ma l'assegnazione dei gruppi non è riuscita: {{error}}"
+
+msgid "and_n_more"
+msgid_plural "and_n_more_plural"
+msgstr[0] "e altri {{count}}"
+msgstr[1] "e altri {{count}}"
+
+msgid "group_members_warning"
+msgid_plural "group_members_warning_plural"
+msgstr[0] "Eliminando questo gruppo, {{count}} membro perderà l'appartenenza:"
+msgstr[1] "Eliminando questo gruppo, {{count}} membri perderanno l'appartenenza:"
+
+msgid "n_more"
+msgid_plural "n_more_plural"
+msgstr[0] "+{{count}} altro"
+msgstr[1] "+{{count}} altri"

@@ -85,18 +85,35 @@ async function getBaseDN(): Promise<string> {
     return dn;
 }
 
+function loadGroupsRaw(baseDN: string): Promise<string> {
+    return runLdbCached(LDB_KEY_GROUPS, [
+        "-H", LDB_PATH, "-b", baseDN,
+        "(objectClass=group)",
+        "sAMAccountName", "cn", "description", "member",
+        "objectSid", "isCriticalSystemObject", "groupType",
+    ], 60_000);
+}
+
+// Maps a group RID to its name, to resolve users' primaryGroupID.
+function buildRidToGroup(groupsRaw: string): Map<string, string> {
+    return new Map(
+        parseLdapMulti(groupsRaw)
+            .filter(f => firstValue(f, "sAMAccountName") !== "")
+            .map(f => [ridFromSid(firstValue(f, "objectSid")), firstValue(f, "sAMAccountName")] as [string, string])
+    );
+}
+
 // --- ldbsearch bulk loaders ---
 
-function buildUserFromFields(fields: LdapFields, ridToGroup?: Map<string, string>): User {
-    const username = firstValue(fields, "sAMAccountName");
+// directGroups: group names from memberOf (bulk ldbsearch) or from
+// "samba-tool user getgroups" (detail view).
+function buildUser(fields: LdapFields, directGroups: string[], ridToGroup: Map<string, string>, username = firstValue(fields, "sAMAccountName")): User {
     const sid = firstValue(fields, "objectSid");
-    const groups = listValue(fields, "memberOf").map(dnToName).filter(Boolean);
-    const primaryGroupId = firstValue(fields, "primaryGroupID");
-    const primaryGroup = ridToGroup?.get(primaryGroupId) ?? "";
+    const primaryGroup = ridToGroup.get(firstValue(fields, "primaryGroupID")) ?? "";
     // primaryGroupID is not reflected in memberOf — add it to ensure consistency
-    const allGroups = primaryGroup && !groups.includes(primaryGroup)
-        ? [...groups, primaryGroup]
-        : groups;
+    const groups = primaryGroup && !directGroups.includes(primaryGroup)
+        ? [...directGroups, primaryGroup]
+        : directGroups;
     return {
         username,
         fullName: firstValue(fields, "cn") || firstValue(fields, "name") || username,
@@ -106,9 +123,9 @@ function buildUserFromFields(fields: LdapFields, ridToGroup?: Map<string, string
         id: firstValue(fields, "uidNumber") || ridFromSid(sid),
         status: deriveUserStatus(firstValue(fields, "userAccountControl")),
         lastActivity: deriveLastActivity(firstValue(fields, "lastLogonTimestamp") || firstValue(fields, "lastLogon")),
-        groups: allGroups,
+        groups,
         primaryGroup,
-        isAdmin: allGroups.some(g => /domain admins|administrators/i.test(g)),
+        isAdmin: groups.some(g => /domain admins|administrators/i.test(g)),
         isProtected: PROTECTED_USERS.has(username.toLowerCase()) || firstValue(fields, "isCriticalSystemObject").toUpperCase() === "TRUE",
         isStatusLocked: ["500", "502"].includes(ridFromSid(sid)),
         homeDrive: firstValue(fields, "homeDrive"),
@@ -116,8 +133,8 @@ function buildUserFromFields(fields: LdapFields, ridToGroup?: Map<string, string
     };
 }
 
-function buildGroupFromFields(fields: LdapFields, primaryCounts?: Map<string, number>): Group {
-    const name = firstValue(fields, "sAMAccountName");
+// primaryCounts: users per primary group RID (not reflected in "member").
+function buildGroup(fields: LdapFields, primaryCounts?: Map<string, number>, name = firstValue(fields, "sAMAccountName")): Group {
     const members = listValue(fields, "member").map(dnToName).filter(Boolean);
     const sid = firstValue(fields, "objectSid");
     const rid = ridFromSid(sid);
@@ -159,32 +176,18 @@ export async function listUsers(): Promise<User[]> {
             "objectSid", "memberOf", "isCriticalSystemObject",
             "homeDrive", "homeDirectory", "primaryGroupID",
         ], 30_000),
-        runLdbCached(LDB_KEY_GROUPS, [
-            "-H", LDB_PATH, "-b", baseDN,
-            "(objectClass=group)",
-            "sAMAccountName", "cn", "description", "member",
-            "objectSid", "isCriticalSystemObject", "groupType",
-        ], 60_000),
+        loadGroupsRaw(baseDN),
     ]);
-    const ridToGroup = new Map<string, string>(
-        parseLdapMulti(groupsRaw)
-            .filter(f => firstValue(f, "sAMAccountName") !== "")
-            .map(f => [ridFromSid(firstValue(f, "objectSid")), firstValue(f, "sAMAccountName")] as [string, string])
-    );
+    const ridToGroup = buildRidToGroup(groupsRaw);
     return parseLdapMulti(usersRaw)
         .filter(f => firstValue(f, "sAMAccountName") !== "")
-        .map(f => buildUserFromFields(f, ridToGroup));
+        .map(f => buildUser(f, listValue(f, "memberOf").map(dnToName).filter(Boolean), ridToGroup));
 }
 
 export async function listGroups(): Promise<Group[]> {
     const baseDN = await getBaseDN();
     const [groupsRaw, primaryRaw] = await Promise.all([
-        runLdbCached(LDB_KEY_GROUPS, [
-            "-H", LDB_PATH, "-b", baseDN,
-            "(objectClass=group)",
-            "sAMAccountName", "cn", "description", "member",
-            "objectSid", "isCriticalSystemObject", "groupType",
-        ], 60_000),
+        loadGroupsRaw(baseDN),
         runLdbCached(LDB_KEY_PRIMARY_COUNTS, [
             "-H", LDB_PATH, "-b", baseDN,
             "(&(objectClass=user)(!(objectClass=computer)))",
@@ -198,7 +201,7 @@ export async function listGroups(): Promise<Group[]> {
     }
     return parseLdapMulti(groupsRaw)
         .filter(f => firstValue(f, "sAMAccountName") !== "")
-        .map(f => buildGroupFromFields(f, primaryCounts));
+        .map(f => buildGroup(f, primaryCounts));
 }
 
 export async function listComputers(): Promise<Computer[]> {
@@ -216,52 +219,15 @@ export async function listComputers(): Promise<Computer[]> {
 
 // --- Users ---
 
-function buildUser(username: string, raw: string, groups: string[], ridToGroup?: Map<string, string>): User {
-    const fields = parseLdapShow(raw);
-    const sid = firstValue(fields, "objectSid");
-    const primaryGroupId = firstValue(fields, "primaryGroupID");
-    const primaryGroup = ridToGroup?.get(primaryGroupId) ?? "";
-    const allGroups = primaryGroup && !groups.includes(primaryGroup)
-        ? [...groups, primaryGroup]
-        : groups;
-    return {
-        username,
-        fullName: firstValue(fields, "cn") || firstValue(fields, "name") || username,
-        givenName: firstValue(fields, "givenName"),
-        surname: firstValue(fields, "sn"),
-        email: firstValue(fields, "mail"),
-        id: firstValue(fields, "uidNumber") || ridFromSid(sid),
-        status: deriveUserStatus(firstValue(fields, "userAccountControl")),
-        lastActivity: deriveLastActivity(firstValue(fields, "lastLogonTimestamp") || firstValue(fields, "lastLogon")),
-        groups: allGroups,
-        primaryGroup,
-        isAdmin: allGroups.some(g => /domain admins|administrators/i.test(g)),
-        isProtected: PROTECTED_USERS.has(username.toLowerCase()) || firstValue(fields, "isCriticalSystemObject").toUpperCase() === "TRUE",
-        isStatusLocked: ["500", "502"].includes(ridFromSid(sid)),
-        homeDrive: firstValue(fields, "homeDrive"),
-        homeDirectory: firstValue(fields, "homeDirectory"),
-    };
-}
-
 export async function getUserDetails(username: string): Promise<User> {
     checkName(username);
     const baseDN = await getBaseDN();
     const [detail, groupsRaw, groupsForMap] = await Promise.all([
         runSambaCached(["user", "show", username], 30_000),
         runSambaCached(["user", "getgroups", username], 30_000),
-        runLdbCached(LDB_KEY_GROUPS, [
-            "-H", LDB_PATH, "-b", baseDN,
-            "(objectClass=group)",
-            "sAMAccountName", "cn", "description", "member",
-            "objectSid", "isCriticalSystemObject", "groupType",
-        ], 60_000),
+        loadGroupsRaw(baseDN),
     ]);
-    const ridToGroup = new Map<string, string>(
-        parseLdapMulti(groupsForMap)
-            .filter(f => firstValue(f, "sAMAccountName") !== "")
-            .map(f => [ridFromSid(firstValue(f, "objectSid")), firstValue(f, "sAMAccountName")] as [string, string])
-    );
-    return buildUser(username, detail, parseList(groupsRaw), ridToGroup);
+    return buildUser(parseLdapShow(detail), parseList(groupsRaw), buildRidToGroup(groupsForMap), username);
 }
 
 export async function refreshUser(username: string): Promise<User> {
@@ -352,28 +318,11 @@ export async function getPasswordPolicy(): Promise<PasswordPolicy> {
 
 // --- Groups ---
 
-function buildGroup(name: string, raw: string): Group {
-    const fields = parseLdapShow(raw);
-    const members = listValue(fields, "member").map(dnToName).filter(Boolean);
-    const sid = firstValue(fields, "objectSid");
-    const isCritical = firstValue(fields, "isCriticalSystemObject").toUpperCase() === "TRUE";
-    return {
-        name,
-        description: firstValue(fields, "description"),
-        id: ridFromSid(sid),
-        memberCount: members.length,
-        members,
-        isCriticalSystemObject: isCritical,
-        isProtected: PROTECTED_GROUPS.has(name.toLowerCase()) || isCritical,
-        groupType: parseGroupType(firstValue(fields, "groupType")),
-    };
-}
-
 export async function getGroupDetails(name: string): Promise<Group> {
     checkName(name);
     const baseDN = await getBaseDN();
     const detail = await runSambaCached(["group", "show", name], 60_000);
-    const g = buildGroup(name, detail);
+    const g = buildGroup(parseLdapShow(detail), undefined, name);
     // Count users whose primary group is this group (not reflected in the member attribute)
     const primaryRaw = await runLdb(["-H", LDB_PATH, "-b", baseDN,
         `(&(objectClass=user)(!(objectClass=computer))(primaryGroupID=${g.id}))`,
