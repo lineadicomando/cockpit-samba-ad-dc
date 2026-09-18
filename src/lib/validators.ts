@@ -93,3 +93,14 @@ export function validateShareName(name: string): ShareNameViolation | null {
     if (RESERVED_SHARE_NAMES.has(name.toLowerCase())) return "reserved";
     return null;
 }
+
+export function shareNameViolationMessage(t: (key: string) => string, violation: ShareNameViolation): string {
+    switch (violation) {
+        case "empty":             return t("Name is required.");
+        case "tooLong":           return t("Name cannot exceed 80 characters.");
+        case "invalidChars":      return t("Name contains invalid characters: \" / \\ [ ] : ; | = , + * ? < > %");
+        case "surroundingSpaces": return t("Name cannot start or end with a space.");
+        case "leadingDash":       return t("Name cannot start with a dash.");
+        case "reserved":          return t("This name is reserved by Samba.");
+    }
+}

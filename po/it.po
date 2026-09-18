@@ -677,3 +677,156 @@ msgid "n_more"
 msgid_plural "n_more_plural"
 msgstr[0] "+{{count}} altro"
 msgstr[1] "+{{count}} altri"
+
+# ---------------------------------------------------------------------------
+# Cartelle condivise
+# ---------------------------------------------------------------------------
+
+msgid "Shared folders"
+msgstr "Cartelle condivise"
+
+msgid "Shared folders table"
+msgstr "Tabella cartelle condivise"
+
+msgid "shares_count"
+msgid_plural "shares_count_plural"
+msgstr[0] "{{count}} cartella condivisa"
+msgstr[1] "{{count}} cartelle condivise"
+
+msgid "Create shared folder"
+msgstr "Crea cartella condivisa"
+
+msgid "Edit shared folder: {{name}}"
+msgstr "Modifica cartella condivisa: {{name}}"
+
+msgid "Delete shared folder"
+msgstr "Elimina cartella condivisa"
+
+msgid "Delete shared folder: {{name}}"
+msgstr "Elimina cartella condivisa: {{name}}"
+
+msgid "Edit"
+msgstr "Modifica"
+
+msgid "Save"
+msgstr "Salva"
+
+msgid "Description"
+msgstr "Descrizione"
+
+msgid "Access"
+msgstr "Accesso"
+
+msgid "Access list"
+msgstr "Elenco accessi"
+
+msgid "Folder"
+msgstr "Cartella"
+
+msgid "Folder: {{path}}"
+msgstr "Cartella: {{path}}"
+
+msgid "Hidden"
+msgstr "Nascosta"
+
+msgid "Group"
+msgstr "Gruppo"
+
+msgid "User"
+msgstr "Utente"
+
+msgid "User or group"
+msgstr "Utente o gruppo"
+
+msgid "Permissions"
+msgstr "Permessi"
+
+msgid "Read only"
+msgstr "Sola lettura"
+
+msgid "Read and write"
+msgstr "Lettura e scrittura"
+
+msgid "{{name}} (read only)"
+msgstr "{{name}} (sola lettura)"
+
+msgid "Remove {{name}}"
+msgstr "Rimuovi {{name}}"
+
+msgid "Show less"
+msgstr "Mostra meno"
+
+msgid "Add user or group"
+msgstr "Aggiungi utente o gruppo"
+
+msgid "Filter users and groups…"
+msgstr "Filtra utenti e gruppi…"
+
+msgid "No users or groups found"
+msgstr "Nessun utente o gruppo trovato"
+
+msgid "Failed to load users and groups"
+msgstr "Impossibile caricare utenti e gruppi"
+
+msgid "Filter shared folders"
+msgstr "Filtra cartelle condivise"
+
+msgid "Loading shared folders"
+msgstr "Caricamento cartelle condivise"
+
+msgid "Failed to load shared folders"
+msgstr "Impossibile caricare le cartelle condivise"
+
+msgid "No shared folders"
+msgstr "Nessuna cartella condivisa"
+
+msgid "No shared folders match the filter"
+msgstr "Nessuna cartella condivisa corrisponde al filtro"
+
+msgid "Try clearing the search."
+msgstr "Prova a rimuovere il filtro di ricerca."
+
+msgid "Create a shared folder to give users and groups a common place for their files."
+msgstr "Crea una cartella condivisa per dare a utenti e gruppi uno spazio comune per i loro file."
+
+msgid "Visible when browsing the server"
+msgstr "Visibile nell'elenco delle risorse del server"
+
+msgid "When unchecked, the folder can still be opened by typing its path."
+msgstr "Se disattivato, la cartella resta raggiungibile digitandone il percorso."
+
+msgid "Only the users and groups listed here can open the folder."
+msgstr "Solo gli utenti e i gruppi elencati possono aprire la cartella."
+
+msgid "Add at least one user or group."
+msgstr "Aggiungi almeno un utente o un gruppo."
+
+msgid "A shared folder with this name already exists."
+msgstr "Esiste già una cartella condivisa con questo nome."
+
+msgid "Also delete the folder and all its contents"
+msgstr "Elimina anche la cartella e tutto il suo contenuto"
+
+msgid "The files will be permanently deleted."
+msgstr "I file verranno eliminati definitivamente."
+
+msgid "The files are kept on the server; only network access is removed."
+msgstr "I file restano sul server; viene rimosso solo l'accesso di rete."
+
+msgid "Name is required."
+msgstr "Il nome è obbligatorio."
+
+msgid "Name cannot exceed 80 characters."
+msgstr "Il nome non può superare 80 caratteri."
+
+msgid "Name contains invalid characters: \" / \\ [ ] : ; | = , + * ? < > %"
+msgstr "Il nome contiene caratteri non validi: \" / \\ [ ] : ; | = , + * ? < > %"
+
+msgid "Name cannot start or end with a space."
+msgstr "Il nome non può iniziare o terminare con uno spazio."
+
+msgid "Name cannot start with a dash."
+msgstr "Il nome non può iniziare con un trattino."
+
+msgid "This name is reserved by Samba."
+msgstr "Questo nome è riservato da Samba."

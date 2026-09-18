@@ -8,7 +8,7 @@ import {
   type SetStateAction,
 } from "react";
 import cockpit from "cockpit";
-import { getPasswordPolicy, listGroups } from "./samba.ts";
+import { getPasswordPolicy, listGroups, listUsers } from "./samba.ts";
 import { generatePassword } from "./passwordUtils.ts";
 import type { PasswordPolicy } from "./types.ts";
 
@@ -130,6 +130,42 @@ export function useGroupNames(enabled = true): {
     }, [enabled]);
 
     return { groupNames, loading, error };
+}
+
+// ---------------------------------------------------------------------------
+// usePrincipals — all domain users and groups (for the share access picker)
+// ---------------------------------------------------------------------------
+export interface Principal {
+    name: string;
+    kind: "user" | "group";
+}
+
+export function usePrincipals(): {
+    principals: Principal[];
+    loading: boolean;
+    error: string | null;
+} {
+    const [principals, setPrincipals] = useState<Principal[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        let cancelled = false;
+        Promise.all([listGroups(), listUsers()])
+            .then(([groups, users]) => {
+                if (cancelled) return;
+                const byName = (a: Principal, b: Principal) => a.name.localeCompare(b.name);
+                setPrincipals([
+                    ...groups.map(g => ({ name: g.name, kind: "group" as const })).sort(byName),
+                    ...users.map(u => ({ name: u.username, kind: "user" as const })).sort(byName),
+                ]);
+            })
+            .catch((e: unknown) => { if (!cancelled) setError(e instanceof Error ? e.message : String(e)); })
+            .finally(() => { if (!cancelled) setLoading(false); });
+        return () => { cancelled = true; };
+    }, []);
+
+    return { principals, loading, error };
 }
 
 // ---------------------------------------------------------------------------

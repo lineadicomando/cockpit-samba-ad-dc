@@ -11,6 +11,7 @@ import {
 import { UsersPage } from "./components/UsersPage.tsx";
 import { GroupsPage } from "./components/GroupsPage.tsx";
 import { ComputersPage } from "./components/ComputersPage.tsx";
+import { SharesPage } from "./components/SharesPage.tsx";
 import { UserDetailPage } from "./components/UserDetailPage.tsx";
 import { useCockpitLocation } from "./lib/hooks.ts";
 
@@ -51,6 +52,12 @@ export function App() {
             </Tab>
             <Tab eventKey="groups" title={<TabTitleText>{t("Groups")}</TabTitleText>}>
               <GroupsPage refreshToken={listRefreshToken} />
+            </Tab>
+            <Tab
+              eventKey="shares"
+              title={<TabTitleText>{t("Shared folders")}</TabTitleText>}
+            >
+              <SharesPage />
             </Tab>
             <Tab
               eventKey="computers"
