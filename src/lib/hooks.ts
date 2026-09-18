@@ -35,15 +35,17 @@ export function useSingleLoad<T>(
     loading: boolean;
     error: string | null;
     reload: () => void;
+    refresh: () => void;
 } {
     const [items, setItems] = useState<T[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const loadGenRef = useRef(0);
 
-    const reload = useCallback(async () => {
+    // silent: keep the current items on screen (no spinner) while refetching
+    const load_ = useCallback(async (silent: boolean) => {
         const gen = ++loadGenRef.current;
-        setLoading(true);
+        if (!silent) setLoading(true);
         setError(null);
         try {
             const result = await load();
@@ -57,11 +59,16 @@ export function useSingleLoad<T>(
         }
     }, [load]);
 
+    // Wrapped so they can be passed straight to onClick (the event must not
+    // be taken as the "silent" flag).
+    const reload = useCallback(() => { load_(false); }, [load_]);
+    const refresh = useCallback(() => { load_(true); }, [load_]);
+
     useEffect(() => {
         reload();
     }, [reload]);
 
-    return { items, setItems, loading, error, reload };
+    return { items, setItems, loading, error, reload, refresh };
 }
 
 // ---------------------------------------------------------------------------
@@ -72,13 +79,19 @@ export const PER_PAGE_OPTIONS = [10, 15, 20, 25, 30, 40, 50].map((v) => ({
   value: v,
 }));
 
-export function usePagination<T>(items: T[], defaultPerPage = 10) {
-  const [page, setPage] = useState(1);
+// resetKey: changes whenever the filters/sort change, to go back to page 1.
+// Data updates alone (e.g. toggling a user on page 3) keep the current page,
+// clamped to the last page if the list shrank.
+export function usePagination<T>(items: T[], resetKey = "", defaultPerPage = 10) {
+  const [requestedPage, setPage] = useState(1);
   const [perPage, setPerPage] = useState(defaultPerPage);
 
   useEffect(() => {
     setPage(1);
-  }, [items]);
+  }, [resetKey]);
+
+  const lastPage = Math.max(1, Math.ceil(items.length / perPage));
+  const page = Math.min(requestedPage, lastPage);
 
   const paginated = useMemo(
     () => items.slice((page - 1) * perPage, page * perPage),

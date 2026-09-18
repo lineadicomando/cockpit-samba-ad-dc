@@ -60,7 +60,7 @@ export function ComputersPage() {
         );
     }, [computers, search]);
 
-    const { page, perPage, paginated, onSetPage, onPerPageSelect } = usePagination(filtered);
+    const { page, perPage, paginated, onSetPage, onPerPageSelect } = usePagination(filtered, search);
 
     function rowActions(computer: Computer): IAction[] {
         return [

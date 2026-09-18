@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Page,
@@ -20,6 +20,17 @@ export function App() {
   const location = useCockpitLocation();
   const detailUsername = location.path.length > 0 ? location.path[0] : null;
 
+  // Lists stay mounted (hidden) while the detail page is shown; bump a token
+  // on the way back so they refetch what may have been edited there.
+  const [listRefreshToken, setListRefreshToken] = useState(0);
+  const prevDetailRef = useRef(detailUsername);
+  useEffect(() => {
+    if (prevDetailRef.current !== null && detailUsername === null) {
+      setListRefreshToken((n) => n + 1);
+    }
+    prevDetailRef.current = detailUsername;
+  }, [detailUsername]);
+
   return (
     <Page sidebar={null}>
       {/* Main layout — always in DOM to preserve UsersPage filter/sort state */}
@@ -36,10 +47,10 @@ export function App() {
             mountOnEnter
           >
             <Tab eventKey="users" title={<TabTitleText>{t("Users")}</TabTitleText>}>
-              <UsersPage />
+              <UsersPage refreshToken={listRefreshToken} />
             </Tab>
             <Tab eventKey="groups" title={<TabTitleText>{t("Groups")}</TabTitleText>}>
-              <GroupsPage />
+              <GroupsPage refreshToken={listRefreshToken} />
             </Tab>
             <Tab
               eventKey="computers"

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
     Alert,
@@ -47,7 +47,13 @@ type ModalState =
     | { kind: "rename"; group: Group }
     | { kind: "delete"; group: Group };
 
-export function GroupsPage() {
+interface Props {
+    // See UsersPage: member counts change when groups are edited from the
+    // user detail page.
+    refreshToken?: number;
+}
+
+export function GroupsPage({ refreshToken = 0 }: Props) {
     const { t } = useTranslation();
     const {
         items: groups,
@@ -55,7 +61,12 @@ export function GroupsPage() {
         loading,
         error,
         reload: loadGroups,
+        refresh: refreshGroups,
     } = useSingleLoad(listGroups);
+
+    useEffect(() => {
+        if (refreshToken > 0) refreshGroups();
+    }, [refreshToken, refreshGroups]);
 
     const [search, setSearch] = useState("");
     const [typeFilter, setTypeFilter] = useState<"all" | "protected" | "custom">("all");
@@ -76,7 +87,7 @@ export function GroupsPage() {
         return result;
     }, [groups, search, typeFilter]);
 
-    const { page, perPage, paginated, onSetPage, onPerPageSelect } = usePagination(filtered);
+    const { page, perPage, paginated, onSetPage, onPerPageSelect } = usePagination(filtered, `${search}\x1f${typeFilter}`);
 
     function rowActions(g: Group): IAction[] {
         return [

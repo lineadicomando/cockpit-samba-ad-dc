@@ -63,7 +63,13 @@ type ModalState =
   | { kind: "bulk-confirm"; action: BulkConfirmAction; users: User[] }
   | { kind: "bulk-group"; action: BulkGroupAction; users: User[] };
 
-export function UsersPage() {
+interface Props {
+  // Incremented by App when returning from the user detail page, whose edits
+  // (rename, groups, status, home dir) this list would otherwise not reflect.
+  refreshToken?: number;
+}
+
+export function UsersPage({ refreshToken = 0 }: Props) {
   const { t } = useTranslation();
   const {
     items: users,
@@ -71,7 +77,12 @@ export function UsersPage() {
     loading,
     error,
     reload: loadUsers,
+    refresh: refreshUsers,
   } = useSingleLoad(listUsers);
+
+  useEffect(() => {
+    if (refreshToken > 0) refreshUsers();
+  }, [refreshToken, refreshUsers]);
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<
@@ -186,7 +197,20 @@ export function UsersPage() {
   );
 
   const { page, perPage, paginated, onSetPage, onPerPageSelect } =
-    usePagination(filtered);
+    usePagination(
+      filtered,
+      [search, statusFilter, groupFilter ?? "", sortIndex ?? "", sortDir].join("\x1f"),
+    );
+
+  // Keep only visible users selected, so bulk actions never touch rows the
+  // operator can no longer see (filtered out, or deleted by a reload).
+  useEffect(() => {
+    const visible = new Set(filtered.map((u) => u.username));
+    setSelectedUsernames((prev) => {
+      const next = new Set([...prev].filter((n) => visible.has(n)));
+      return next.size === prev.size ? prev : next;
+    });
+  }, [filtered]);
 
   const selectedUsers = useMemo(
     () => users.filter((u) => selectedUsernames.has(u.username)),

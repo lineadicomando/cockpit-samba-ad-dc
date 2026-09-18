@@ -75,11 +75,14 @@ async function runLdbCached(key: string, args: string[], ttlMs: number): Promise
     return output;
 }
 
+// Read from the local sam.ldb rootDSE rather than "samba-tool domain info
+// 127.0.0.1", which is a CLDAP network query and fails when Samba does not
+// listen on loopback (e.g. "bind interfaces only").
 async function getBaseDN(): Promise<string> {
-    const raw = await runSambaCached(["domain", "info", "127.0.0.1"], 3_600_000);
-    const match = raw.match(/^Domain\s*:\s*(\S+)/im);
-    if (!match) throw new Error("Cannot determine domain from domain info");
-    return match[1].split(".").map(part => `DC=${part}`).join(",");
+    const raw = await runLdbCached("ldb:rootdse", ["-H", LDB_PATH, "-s", "base", "-b", "", "defaultNamingContext"], 3_600_000);
+    const dn = parseLdapMulti(raw).map(f => firstValue(f, "defaultNamingContext")).find(Boolean);
+    if (!dn) throw new Error("Cannot determine the domain naming context from sam.ldb");
+    return dn;
 }
 
 // --- ldbsearch bulk loaders ---
@@ -460,11 +463,17 @@ export async function deleteComputer(name: string): Promise<void> {
 
 // --- Home directories ---
 
+// Read from the local config (see getBaseDN for why not "domain info").
+let dcNetbiosName: string | null = null;
+
 async function getDCNetbiosName(): Promise<string> {
-    const raw = await runSambaCached(["domain", "info", "127.0.0.1"], 3_600_000);
-    const match = raw.match(/DC netbios name\s*:\s*(\S+)/i);
-    if (!match) throw new Error("Cannot determine DC NetBIOS name from domain info");
-    return match[1];
+    if (dcNetbiosName) return dcNetbiosName;
+    const raw = await cockpit.spawn(["testparm", "-s", "--parameter-name=netbios name"],
+        { superuser: "require", err: "message" });
+    const name = raw.trim();
+    if (!name) throw new Error("Cannot determine DC NetBIOS name from smb.conf");
+    dcNetbiosName = name;
+    return name;
 }
 
 async function getUserDN(username: string): Promise<string> {
