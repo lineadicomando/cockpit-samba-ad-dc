@@ -6,6 +6,7 @@ import {
     Button, Alert, Spinner, Content,
 } from "@patternfly/react-core";
 import { listGroupMembers, addGroupMembers, removeGroupMembers } from "../../lib/samba.ts";
+import { validateMemberName } from "../../lib/validators.ts";
 interface Props { group: { name: string }; onClose: () => void; onSuccess: () => void | Promise<void>; }
 
 export function ManageMembersModal({ group, onClose, onSuccess }: Props) {
@@ -24,9 +25,21 @@ export function ManageMembersModal({ group, onClose, onSuccess }: Props) {
             .finally(() => setLoadingMembers(false));
     }, [group.name]);
 
+    // Returns the parsed names, or null after reporting the first invalid one
+    // (e.g. "-x" would otherwise be parsed as a samba-tool option).
+    function parseMembers(input: string): string[] | null {
+        const names = input.split(",").map(s => s.trim()).filter(Boolean);
+        const invalid = names.find(n => validateMemberName(n) !== null);
+        if (invalid !== undefined) {
+            setError(t("Invalid member name: {{name}}", { name: invalid }));
+            return null;
+        }
+        return names;
+    }
+
     async function handleAdd() {
-        const toAdd = addInput.split(",").map(s => s.trim()).filter(Boolean);
-        if (toAdd.length === 0) return;
+        const toAdd = parseMembers(addInput);
+        if (!toAdd || toAdd.length === 0) return;
         setSubmitting(true);
         setError(null);
         try { await addGroupMembers(group.name, toAdd); await onSuccess(); }
@@ -34,8 +47,8 @@ export function ManageMembersModal({ group, onClose, onSuccess }: Props) {
     }
 
     async function handleRemove() {
-        const toRemove = removeInput.split(",").map(s => s.trim()).filter(Boolean);
-        if (toRemove.length === 0) return;
+        const toRemove = parseMembers(removeInput);
+        if (!toRemove || toRemove.length === 0) return;
         setSubmitting(true);
         setError(null);
         try { await removeGroupMembers(group.name, toRemove); await onSuccess(); }

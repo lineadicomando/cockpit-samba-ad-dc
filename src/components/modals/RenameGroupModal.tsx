@@ -6,6 +6,7 @@ import {
     Button, Alert,
 } from "@patternfly/react-core";
 import { renameGroup } from "../../lib/samba.ts";
+import { validateGroupName, groupNameViolationMessage } from "../../lib/validators.ts";
 interface Props { group: { name: string }; onClose: () => void; onSuccess: () => void; }
 
 export function RenameGroupModal({ group, onClose, onSuccess }: Props) {
@@ -16,7 +17,8 @@ export function RenameGroupModal({ group, onClose, onSuccess }: Props) {
 
     async function handleRename() {
         const trimmed = newName.trim();
-        if (!trimmed) { setError(t("Group name is required.")); return; }
+        const violation = validateGroupName(trimmed);
+        if (violation) { setError(groupNameViolationMessage(t, violation)); return; }
         if (trimmed === group.name) { setError(t("The new name is the same as the current name.")); return; }
         setSubmitting(true);
         setError(null);

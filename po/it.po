@@ -359,6 +359,33 @@ msgstr "Il nome utente è obbligatorio."
 msgid "Group name is required."
 msgstr "Il nome del gruppo è obbligatorio."
 
+msgid "Username cannot exceed 20 characters."
+msgstr "Il nome utente non può superare i 20 caratteri."
+
+msgid "Username contains invalid characters: \" / \\ [ ] : ; | = , + * ? < >"
+msgstr "Il nome utente contiene caratteri non validi: \" / \\ [ ] : ; | = , + * ? < >"
+
+msgid "Username cannot start with a dash."
+msgstr "Il nome utente non può iniziare con un trattino."
+
+msgid "Username cannot end with a period."
+msgstr "Il nome utente non può terminare con un punto."
+
+msgid "Group name cannot exceed 256 characters."
+msgstr "Il nome del gruppo non può superare i 256 caratteri."
+
+msgid "Group name contains invalid characters: \" / \\ [ ] : ; | = , + * ? < >"
+msgstr "Il nome del gruppo contiene caratteri non validi: \" / \\ [ ] : ; | = , + * ? < >"
+
+msgid "Group name cannot start with a dash."
+msgstr "Il nome del gruppo non può iniziare con un trattino."
+
+msgid "Group name cannot end with a period."
+msgstr "Il nome del gruppo non può terminare con un punto."
+
+msgid "Invalid member name: {{name}}"
+msgstr "Nome membro non valido: {{name}}"
+
 msgid "Password is required."
 msgstr "La password è obbligatoria."
 

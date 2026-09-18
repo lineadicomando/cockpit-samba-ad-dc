@@ -6,6 +6,7 @@ import {
     Button, Alert,
 } from "@patternfly/react-core";
 import { createGroup } from "../../lib/samba.ts";
+import { validateGroupName, groupNameViolationMessage } from "../../lib/validators.ts";
 
 interface Props { onClose: () => void; onSuccess: () => void; }
 
@@ -16,7 +17,8 @@ export function CreateGroupModal({ onClose, onSuccess }: Props) {
     const [submitting, setSubmitting] = useState(false);
 
     async function handleSubmit() {
-        if (!name.trim()) { setError(t("Group name is required.")); return; }
+        const violation = validateGroupName(name.trim());
+        if (violation) { setError(groupNameViolationMessage(t, violation)); return; }
         setSubmitting(true);
         setError(null);
         try {

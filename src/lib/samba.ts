@@ -23,6 +23,15 @@ const PROTECTED_GROUPS = new Set([
     "dnsadmins", "dnsupdateproxy",
 ]);
 
+// Defense in depth for names reaching samba-tool/chown as positional args:
+// a leading "-" would be parsed as an option. The UI validates new names, but
+// existing directory objects and future callers go through here too.
+function checkName(...names: string[]): void {
+    for (const name of names) {
+        if (!name || name.startsWith("-")) throw new Error(`Invalid account name: "${name}"`);
+    }
+}
+
 async function runSamba(args: string[]): Promise<string> {
     return cockpit.spawn(["samba-tool", ...args], { superuser: "require", err: "message" });
 }
@@ -232,6 +241,7 @@ function buildUser(username: string, raw: string, groups: string[], ridToGroup?:
 }
 
 export async function getUserDetails(username: string): Promise<User> {
+    checkName(username);
     const baseDN = await getBaseDN();
     const [detail, groupsRaw, groupsForMap] = await Promise.all([
         runSambaCached(["user", "show", username], 30_000),
@@ -262,6 +272,7 @@ export async function refreshUser(username: string): Promise<User> {
 }
 
 export async function createUser(username: string, password: string, givenName?: string, surname?: string): Promise<void> {
+    checkName(username);
     const args = ["user", "add", username];
     if (givenName) args.push(`--given-name=${givenName}`);
     if (surname) args.push(`--surname=${surname}`);
@@ -271,11 +282,13 @@ export async function createUser(username: string, password: string, givenName?:
 }
 
 export async function deleteUser(username: string): Promise<void> {
+    checkName(username);
     await runSamba(["user", "delete", username]);
     cache.invalidate(k => k.startsWith(cacheKey("user", "")) || k === LDB_KEY_USERS || k === LDB_KEY_PRIMARY_COUNTS);
 }
 
 export async function enableUser(username: string): Promise<void> {
+    checkName(username);
     await runSamba(["user", "enable", username]);
     cache.invalidate(k =>
         k === cacheKey("user", "show", username) ||
@@ -285,6 +298,7 @@ export async function enableUser(username: string): Promise<void> {
 }
 
 export async function disableUser(username: string): Promise<void> {
+    checkName(username);
     await runSamba(["user", "disable", username]);
     cache.invalidate(k =>
         k === cacheKey("user", "show", username) ||
@@ -294,6 +308,7 @@ export async function disableUser(username: string): Promise<void> {
 }
 
 export async function modifyUser(username: string, data: { givenName?: string; surname?: string; email?: string; newUsername?: string }): Promise<void> {
+    checkName(username);
     const args = ["user", "rename", username];
     if (data.givenName !== undefined) args.push(`--given-name=${data.givenName}`);
     if (data.surname !== undefined) args.push(`--surname=${data.surname}`);
@@ -309,6 +324,7 @@ export async function modifyUser(username: string, data: { givenName?: string; s
 }
 
 export async function setUserPassword(username: string, newPassword: string, mustChange: boolean): Promise<void> {
+    checkName(username);
     const args = ["user", "setpassword", username];
     if (mustChange) args.push("--must-change-at-next-login");
     // samba-tool prompts "New Password:" / "Retype Password:" when omitted from argv
@@ -316,6 +332,7 @@ export async function setUserPassword(username: string, newPassword: string, mus
 }
 
 export async function setPrimaryGroup(username: string, groupName: string): Promise<void> {
+    checkName(username, groupName);
     await runSamba(["user", "setprimarygroup", username, groupName]);
     cache.invalidate(k =>
         k === cacheKey("user", "show", username) ||
@@ -350,6 +367,7 @@ function buildGroup(name: string, raw: string): Group {
 }
 
 export async function getGroupDetails(name: string): Promise<Group> {
+    checkName(name);
     const baseDN = await getBaseDN();
     const detail = await runSambaCached(["group", "show", name], 60_000);
     const g = buildGroup(name, detail);
@@ -373,6 +391,7 @@ export async function refreshGroup(name: string): Promise<Group> {
 }
 
 export async function listGroupMembers(groupName: string): Promise<string[]> {
+    checkName(groupName);
     const raw = await runSamba(["group", "listmembers", groupName]);
     return parseList(raw);
 }
@@ -389,21 +408,25 @@ function invalidateGroupCaches(): void {
 }
 
 export async function createGroup(name: string): Promise<void> {
+    checkName(name);
     await runSamba(["group", "add", name]);
     invalidateGroupCaches();
 }
 
 export async function deleteGroup(name: string): Promise<void> {
+    checkName(name);
     await runSamba(["group", "delete", name]);
     invalidateGroupCaches();
 }
 
 export async function renameGroup(oldName: string, newName: string): Promise<void> {
+    checkName(oldName, newName);
     await runSamba(["group", "rename", oldName, newName]);
     invalidateGroupCaches();
 }
 
 export async function addGroupMembers(groupName: string, members: string[]): Promise<void> {
+    checkName(groupName, ...members);
     try {
         await runSamba(["group", "addmembers", groupName, members.join(",")]);
     } catch (e) {
@@ -418,6 +441,7 @@ export async function addGroupMembers(groupName: string, members: string[]): Pro
 }
 
 export async function removeGroupMembers(groupName: string, members: string[]): Promise<void> {
+    checkName(groupName, ...members);
     await runSamba(["group", "removemembers", groupName, members.join(",")]);
     cache.invalidate(k =>
         k === cacheKey("group", "show", groupName) ||
@@ -429,6 +453,7 @@ export async function removeGroupMembers(groupName: string, members: string[]): 
 // --- Computers ---
 
 export async function deleteComputer(name: string): Promise<void> {
+    checkName(name);
     await runSamba(["computer", "delete", name]);
     cache.invalidate(k => k.startsWith(cacheKey("computer", "")) || k === LDB_KEY_COMPUTERS);
 }
@@ -468,7 +493,22 @@ async function setHomeDirAttributes(dn: string, homeDrive: string, homeDirectory
     ).input(ldif);
 }
 
-async function ensureHomeShare(): Promise<void> {
+// Shared across concurrent callers: bulk provisioning runs provisionHomeDir in
+// parallel, and without this every call would see the share missing and race
+// on "net conf addshare" (all but one failing with "share already exists").
+let homeSharePromise: Promise<void> | null = null;
+
+function ensureHomeShare(): Promise<void> {
+    if (!homeSharePromise) {
+        homeSharePromise = createHomeShareIfMissing().catch(e => {
+            homeSharePromise = null; // allow a retry after a failure
+            throw e;
+        });
+    }
+    return homeSharePromise;
+}
+
+async function createHomeShareIfMissing(): Promise<void> {
     try {
         await cockpit.spawn(["net", "conf", "showshare", "home"], { superuser: "require", err: "message" });
         return;
@@ -488,13 +528,16 @@ async function ensureHomeShare(): Promise<void> {
 }
 
 export async function provisionHomeDir(username: string): Promise<void> {
+    checkName(username);
     const [netbiosName, dn] = await Promise.all([getDCNetbiosName(), getUserDN(username)]);
     const homeDir = `/home/samba/${username}`;
     const uncPath = `\\\\${netbiosName}\\home\\${username}`;
 
     await cockpit.spawn(["mkdir", "-p", homeDir], { superuser: "require", err: "message" });
     await cockpit.spawn(["chmod", "700", homeDir], { superuser: "require", err: "message" });
-    await cockpit.spawn(["chown", `${username}:${username}`, homeDir], { superuser: "require", err: "message" });
+    // "user:" sets the group to the user's login group; unlike "user:user" it
+    // does not depend on winbind also mapping the user SID as a group.
+    await cockpit.spawn(["chown", `${username}:`, homeDir], { superuser: "require", err: "message" });
     await setHomeDirAttributes(dn, "H:", uncPath);
     await ensureHomeShare();
     cache.invalidate(k =>

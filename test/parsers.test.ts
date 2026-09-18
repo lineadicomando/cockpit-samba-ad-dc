@@ -33,11 +33,35 @@ describe("parseLdapShow", () => {
         assert.equal(Object.keys(result).length, 1);
     });
 
-    it("handles base64-encoded values with :: separator", () => {
-        const raw = "objectSid:: AQUAAAA=\ncn: alice\n";
+    it("decodes base64 values with :: separator as UTF-8", () => {
+        // Real ldb output for a non-ASCII cn
+        const raw = "cn:: Tmljb2zDsiBSb3NzaQ==\nsAMAccountName: nrossi\n";
         const result = parseLdapShow(raw);
-        assert.equal(result["objectSid"], "AQUAAAA=");
+        assert.equal(result["cn"], "Nicolò Rossi");
+        assert.equal(result["sAMAccountName"], "nrossi");
+    });
+
+    it("decodes repeated base64 values into an array", () => {
+        const raw = "memberOf:: Q049w4hxdWlwZSxEQz1hY21l\nmemberOf: CN=Users,DC=acme\n";
+        const result = parseLdapShow(raw);
+        assert.deepEqual(result["memberOf"], ["CN=Èquipe,DC=acme", "CN=Users,DC=acme"]);
+    });
+
+    it("unfolds continuation lines (leading single space)", () => {
+        // samba-tool user show folds at 78 columns
+        const raw = [
+            "memberOf: CN=LungoNomeGruppoLungoNomeGruppoLungoNomeGruppoLungoNomeGruppoLungo",
+            " NomeGruppo,CN=Users,DC=school,DC=internal",
+            "cn: alice",
+        ].join("\n");
+        const result = parseLdapShow(raw);
+        assert.equal(result["memberOf"], "CN=LungoNomeGruppoLungoNomeGruppoLungoNomeGruppoLungoNomeGruppoLungoNomeGruppo,CN=Users,DC=school,DC=internal");
         assert.equal(result["cn"], "alice");
+    });
+
+    it("unfolds folded base64 values before decoding", () => {
+        const raw = "cn:: Tmljb2zDsiBS\n b3NzaQ==\n";
+        assert.equal(parseLdapShow(raw)["cn"], "Nicolò Rossi");
     });
 });
 

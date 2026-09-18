@@ -4,9 +4,35 @@ export function parseList(raw: string): string[] {
     return raw.split("\n").map(l => l.trim()).filter(l => l.length > 0);
 }
 
+// LDIF (RFC 2849) folds long lines: a line starting with a single space
+// continues the previous one. samba-tool (python ldb) folds at 78 columns.
+function unfoldLdif(raw: string): string[] {
+    const lines: string[] = [];
+    for (const line of raw.replace(/\r\n/g, "\n").split("\n")) {
+        if (line.startsWith(" ") && lines.length > 0) {
+            lines[lines.length - 1] += line.slice(1);
+        } else {
+            lines.push(line);
+        }
+    }
+    return lines;
+}
+
+// ldb base64-encodes any value with non-ASCII bytes (e.g. "cn:: Tmljb2zDsg=="
+// for "Nicolò"); values are UTF-8.
+function decodeBase64Utf8(b64: string): string {
+    try {
+        const bin = atob(b64);
+        const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+        return new TextDecoder().decode(bytes);
+    } catch {
+        return b64;
+    }
+}
+
 export function parseLdapShow(raw: string): LdapFields {
     const fields: LdapFields = {};
-    for (const line of raw.split("\n")) {
+    for (const line of unfoldLdif(raw)) {
         const singleSep = line.indexOf(": ");
         const doubleSep = line.indexOf(":: ");
         // Prefer :: over : when it appears first (base64-encoded values)
@@ -14,7 +40,8 @@ export function parseLdapShow(raw: string): LdapFields {
         const sep = useDouble ? doubleSep : singleSep;
         if (sep <= 0) continue;
         const key = line.slice(0, sep).trim();
-        const val = line.slice(sep + (useDouble ? 3 : 2)).trim();
+        const rawVal = line.slice(sep + (useDouble ? 3 : 2)).trim();
+        const val = useDouble ? decodeBase64Utf8(rawVal) : rawVal;
         const existing = fields[key];
         if (existing !== undefined) {
             fields[key] = Array.isArray(existing) ? [...existing, val] : [existing, val];
