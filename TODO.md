@@ -7,12 +7,70 @@ releases (e.g. `ou create` → `ou add`, `computer create` → `computer add`).
 
 Legend: `[ ]` planned · `[?]` left out for now, future implementation to be decided
 
-Each item, when implemented, also needs: validators in `src/lib/validators.ts`,
+Sections 1 and 2 are release infrastructure and come before the feature work.
+
+Each feature item (sections 3–8), when implemented, also needs: validators in `src/lib/validators.ts`,
 parsers and tests under `test/`, cache invalidation in `src/lib/samba.ts`,
 strings in both `src/locales/en` and `src/locales/it`, and a line in the README
 feature list.
 
-## 1. Account lockout and expiry (high priority)
+## 1. Versioning through git tags (top priority)
+
+Release infrastructure, to be done before any new feature. There are no tags
+or releases yet, and the two version fields disagree (`package.json` says
+`0.1.0`, `src/manifest.json` says `0`). The README version badge and the
+"cockpit-samba-ad-dc version" field of the bug report template have nothing
+to point at.
+
+- [ ] **Define the rule** — semver, tag `vX.Y.Z` on `main` as the single
+      source of truth; document it (README or `CONTRIBUTING.md`), including
+      what counts as a breaking change while on `0.x`
+- [ ] **Derive the version from the tag** instead of hand-editing files
+  - [ ] `build.js` writes the version into `dist/manifest.json`
+        (`git describe --tags`, with a fallback when building from a tarball
+        without git metadata)
+  - [ ] Keep `package.json` aligned (a `make release VERSION=x.y.z` target, or
+        `npm version`, that bumps, commits and tags)
+- [ ] **Show the version in the UI** so users can report it in bug reports
+- [ ] **Changelog** — `CHANGELOG.md` updated at each release
+- [ ] **Release workflow** — GitHub Actions job triggered by `v*` tags: type
+      check, build, test, then publish a GitHub release with the build
+      artifacts
+- [ ] **First tag** — decide the starting version and tag the current state
+- [ ] Update the "Supported versions" table in `SECURITY.md` when it stops
+      being just `0.x`
+
+## 2. Debian package (top priority)
+
+Depends on section 1 for the version number. Today only `sudo make install`
+is supported; the `deb` target exists only in the untracked `Makefile.local`
+and cannot work because the repository has no `debian/` directory.
+
+- [ ] **Add a tracked `debian/` directory**
+  - [ ] `control` — binary package `cockpit-samba-ad-dc`, `Architecture: all`,
+        `Depends:` on `cockpit`, `samba` and `acl` (check the exact package
+        names and minimum versions on Debian 13)
+  - [ ] `changelog` — generated or bumped from the git tag, not written by hand
+  - [ ] `rules` — build with `make build`, install into
+        `/usr/share/cockpit/samba-ad-dc`
+  - [ ] `copyright` (LGPL-2.1-or-later) and `source/format`
+- [ ] **Decide how `node_modules` is provided at build time** — the build
+      needs npm dependencies, which a clean Debian build environment does not
+      download; either build the bundle beforehand and package `dist/`, or
+      document that the package is built with network access
+- [ ] **Move the `deb` target into the tracked `Makefile`**; keep only the
+      VM deploy targets in `Makefile.local`
+- [ ] **Clean upgrade path** — the package must replace a previous
+      `make install` in the same directory without leaving stale files
+- [ ] **Build the `.deb` in CI** and attach it to the GitHub release created
+      by the tag workflow (section 1)
+- [ ] **Check the result** — `lintian`, then install, upgrade and remove on
+      the Debian 13 test VM
+- [ ] Update the README installation section with the `.deb` instructions
+- [?] RPM package for Fedora/RHEL-based servers — future implementation to be
+      decided
+
+## 3. Account lockout and expiry (high priority)
 
 Small additions to the existing user page.
 
@@ -29,7 +87,7 @@ Small additions to the existing user page.
   - [ ] "Expired" label in the users table
   - [ ] Bulk action (e.g. expire a whole class at the end of the school year)
 
-## 2. Password policy (high priority)
+## 4. Password policy (high priority)
 
 The policy is currently read-only (`domain passwordsettings show`) and only
 three fields are parsed (`PasswordPolicy` in `src/lib/types.ts`).
@@ -41,7 +99,7 @@ three fields are parsed (`PasswordPolicy` in `src/lib/types.ts`).
         `--min-pwd-age`, `--max-pwd-age`, `--account-lockout-threshold`,
         `--account-lockout-duration`, `--reset-account-lockout-after`
   - [ ] Invalidate the cached policy (300 s TTL) after a change
-  - [ ] Decide where it lives in the UI (new "Domain" tab, see section 6)
+  - [ ] Decide where it lives in the UI (new "Domain" tab, see section 8)
 - [ ] **Fine-grained policies (PSO)** — `samba-tool domain passwordsettings pso`
   - [ ] List and detail: `pso list`, `pso show <name>`
   - [ ] Create, edit, delete: `pso create <name> <precedence>`, `pso set`, `pso delete`
@@ -50,7 +108,7 @@ three fields are parsed (`PasswordPolicy` in `src/lib/types.ts`).
   - [ ] Make the password field in the create/reset modals validate against
         the effective policy rather than the domain one
 
-## 3. Organizational units (high priority, largest change)
+## 5. Organizational units (high priority, largest change)
 
 No OU support today: every object is created in the default container. This
 touches the navigation of all sections, so it should be designed as a whole.
@@ -66,7 +124,7 @@ touches the navigation of all sections, so it should be designed as a whole.
 - [ ] Show the OU as a column and filter in the users, groups and computers lists
 - [ ] Protect built-in containers (`Domain Controllers`, `Users`, `Computers`)
 
-## 4. Richer create and edit forms (medium priority)
+## 6. Richer create and edit forms (medium priority)
 
 - [ ] **Users** — more `user add` options in the create modal:
       `--must-change-at-next-login`, `--description`, `--mail-address`
@@ -76,9 +134,9 @@ touches the navigation of all sections, so it should be designed as a whole.
 - [ ] **Computers**
   - [ ] Detail page — `samba-tool computer show <name>`
   - [ ] Pre-create an account in a chosen OU — `samba-tool computer add`
-  - [ ] Depends on section 3 for the OU selector
+  - [ ] Depends on section 5 for the OU selector
 
-## 5. DNS and Group Policy (medium priority)
+## 7. DNS and Group Policy (medium priority)
 
 Both areas need a design decision first: these commands talk to the server
 over RPC/SMB and normally require domain credentials, while the rest of the
@@ -95,11 +153,11 @@ access as done for the "Cockpit - Mapped drives" GPO.
 - [ ] **Group Policy** — `samba-tool gpo`
   - [ ] List and detail: `gpo listall`, `gpo show <gpo>`
   - [ ] Links: `gpo getlink`, `gpo setlink`, `gpo dellink`, `gpo listcontainers`
-        (depends on section 3)
+        (depends on section 5)
   - [ ] Backup and restore: `gpo backup`, `gpo restore`
   - [ ] Keep the module's own drive-mapping GPO out of destructive actions
 
-## 6. Domain status and maintenance (medium priority, low effort)
+## 8. Domain status and maintenance (medium priority, low effort)
 
 A new, mostly read-only "Domain" tab.
 
