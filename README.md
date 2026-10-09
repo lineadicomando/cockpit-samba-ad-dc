@@ -1,9 +1,9 @@
-# cockpit-samba-ad-dc
+# cockpit-samba-dc
 
-[![version](https://badgen.net/github/tag/lineadicomando/cockpit-samba-ad-dc)](https://github.com/lineadicomando/cockpit-samba-ad-dc/tags)
+[![version](https://badgen.net/github/tag/lineadicomando/cockpit-samba-dc)](https://github.com/lineadicomando/cockpit-samba-dc/tags)
 [![license](https://badgen.net/static/license/LGPL%20v2.1/blue)](./LICENSE)
-[![CI](https://github.com/lineadicomando/cockpit-samba-ad-dc/actions/workflows/ci.yml/badge.svg)](https://github.com/lineadicomando/cockpit-samba-ad-dc/actions/workflows/ci.yml)
-[![open issues](https://badgen.net/github/open-issues/lineadicomando/cockpit-samba-ad-dc)](https://github.com/lineadicomando/cockpit-samba-ad-dc/issues)
+[![CI](https://github.com/lineadicomando/cockpit-samba-dc/actions/workflows/ci.yml/badge.svg)](https://github.com/lineadicomando/cockpit-samba-dc/actions/workflows/ci.yml)
+[![open issues](https://badgen.net/github/open-issues/lineadicomando/cockpit-samba-dc)](https://github.com/lineadicomando/cockpit-samba-dc/issues)
 
 Cockpit module for managing a Samba Active Directory Domain Controller via `samba-tool`.
 
@@ -47,8 +47,8 @@ Cockpit module for managing a Samba Active Directory Domain Controller via `samb
 ```bash
 
 # Clone repository
-git clone https://github.com/lineadicomando/cockpit-samba-ad-dc.git
-cd cockpit-samba-ad-dc
+git clone https://github.com/lineadicomando/cockpit-samba-dc.git
+cd cockpit-samba-dc
 
 # Install dependencies
 npm install
@@ -58,7 +58,7 @@ sudo make install
 ```
 
 This installs the module to:
-`/usr/share/cockpit/samba-ad-dc`
+`/usr/share/cockpit/samba-dc`
 
 For pre-`1.0.0` releases, deployment is Make-based (`sudo make install`).
 
@@ -71,7 +71,7 @@ npm install
 # Build
 make build
 
-# Install by copying dist/ into production cockpit (/usr/share/cockpit/samba-ad-dc)
+# Install by copying dist/ into production cockpit (/usr/share/cockpit/samba-dc)
 sudo make install
 
 # Install as symlink into local cockpit (development shortcut)

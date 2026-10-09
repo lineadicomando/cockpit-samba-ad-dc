@@ -19,7 +19,7 @@ feature list.
 Release infrastructure, to be done before any new feature. There are no tags
 or releases yet, and the two version fields disagree (`package.json` says
 `0.1.0`, `src/manifest.json` says `0`). The README version badge and the
-"cockpit-samba-ad-dc version" field of the bug report template have nothing
+"cockpit-samba-dc version" field of the bug report template have nothing
 to point at.
 
 - [ ] **Define the rule** — semver, tag `vX.Y.Z` on `main` as the single
@@ -47,12 +47,12 @@ is supported; the `deb` target exists only in the untracked `Makefile.local`
 and cannot work because the repository has no `debian/` directory.
 
 - [ ] **Add a tracked `debian/` directory**
-  - [ ] `control` — binary package `cockpit-samba-ad-dc`, `Architecture: all`,
+  - [ ] `control` — binary package `cockpit-samba-dc`, `Architecture: all`,
         `Depends:` on `cockpit`, `samba` and `acl` (check the exact package
         names and minimum versions on Debian 13)
   - [ ] `changelog` — generated or bumped from the git tag, not written by hand
   - [ ] `rules` — build with `make build`, install into
-        `/usr/share/cockpit/samba-ad-dc`
+        `/usr/share/cockpit/samba-dc`
   - [ ] `copyright` (LGPL-2.1-or-later) and `source/format`
 - [ ] **Decide how `node_modules` is provided at build time** — the build
       needs npm dependencies, which a clean Debian build environment does not

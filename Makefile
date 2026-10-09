@@ -1,4 +1,4 @@
-PKG_NAME := samba-ad-dc
+PKG_NAME := samba-dc
 DIST_DIR  := dist
 LOCAL_COCKPIT_DIR := $(HOME)/.local/share/cockpit
 PROD_COCKPIT_DIR := /usr/share/cockpit

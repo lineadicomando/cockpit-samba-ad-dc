@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Report a problem with cockpit-samba-ad-dc
+about: Report a problem with cockpit-samba-dc
 labels: bug
 ---
 
@@ -16,7 +16,7 @@ A clear description of what the bug is.
 What you expected to happen.
 
 **Environment**
-- cockpit-samba-ad-dc version:
+- cockpit-samba-dc version:
 - Cockpit version (`cockpit-bridge --version`):
 - Samba version (`samba --version`):
 - OS and version:
